@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Valley Sans";
+  src: url("/fonts/ValleySans[wght].woff2") format("woff2-variations"),
+       url("/fonts/ValleySans[wght].woff2") format("woff2"),
+       url("/fonts/ValleySans[wght].ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Valley Sans";
+  src: url("/fonts/ValleySans-Italic[wght].woff2") format("woff2-variations"),
+       url("/fonts/ValleySans-Italic[wght].woff2") format("woff2"),
+       url("/fonts/ValleySans-Italic[wght].ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Valley Sans", system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+* {
+  font-family: "Valley Sans", system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Valley Sans", system-ui, -apple-system, sans-serif;
+}
+
+/* Glitter Text Effect */
+.glitter-text {
+  background: linear-gradient(
+    135deg,
+    #ff3b30 0%,
+    #ff6b5f 18%,
+    #ff2d20 35%,
+    #ffd1cc 50%,
+    #ff3b30 68%,
+    #d91f14 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  text-shadow:
+    0 0 1px rgba(255, 59, 48, 0.2),
+    0 0 8px rgba(255, 59, 48, 0.18),
+    0 0 16px rgba(255, 59, 48, 0.12);
+  position: relative;
+}
+
+.glitter-text::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 12% 20%, rgba(255,255,255,0.95) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 28% 72%, rgba(255,255,255,0.8) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 48% 38%, rgba(255,255,255,0.9) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 66% 18%, rgba(255,255,255,0.85) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 82% 62%, rgba(255,255,255,0.9) 0 1px, transparent 1.5px);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  pointer-events: none;
+  animation: glitterShine 2.8s linear infinite;
+}
+
+@keyframes glitterShine {
+  0% {
+    opacity: 0.45;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translateX(1px);
+  }
+  100% {
+    opacity: 0.45;
+    transform: translateX(0);
+  }
+}
