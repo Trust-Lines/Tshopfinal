@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import ConfiguratorSteps from "@/components/ConfiguratorSteps";
 import FixtureCatalog from "@/components/FixtureCatalog";
+import CuratedCollectionSection from "@/components/CuratedCollectionSection";
 import StoreConfigurator from "@/components/StoreConfigurator";
 import CartDrawer, { CartItem } from "@/components/CartDrawer";
 import Footer from "@/components/Footer";
@@ -104,6 +105,12 @@ export default function Home() {
         <FixtureCatalog
           onAddToCart={handleAddToCart}
           onOpenConfigurator={() => setIsConfiguratorOpen(true)}
+        />
+
+        {/* Curated Store Collection Showroom */}
+        <CuratedCollectionSection
+          onAddToCart={handleAddToCart}
+          onAddBundleToCart={handleAddBundleToCart}
         />
       </main>
 

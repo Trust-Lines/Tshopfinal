@@ -38,7 +38,7 @@ export default function Header({ cartCount, onOpenCart, onOpenConfigurator }: He
 
           {/* ── Logo ─────────────────────────────────────────────── */}
           <a href="#" className="flex items-center shrink-0 hover:opacity-95 transition-opacity">
-            <Logo variant="full" size={38} />
+            <Logo variant="full" height={34} />
           </a>
 
           {/* ── Desktop Search Bar (md+) ─────────────────────────── */}

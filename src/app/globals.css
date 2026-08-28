@@ -3,8 +3,8 @@
 @font-face {
   font-family: "Valley Sans";
   src: url("/fonts/ValleySans[wght].woff2") format("woff2-variations"),
-       url("/fonts/ValleySans[wght].woff2") format("woff2"),
-       url("/fonts/ValleySans[wght].ttf") format("truetype");
+    url("/fonts/ValleySans[wght].woff2") format("woff2"),
+    url("/fonts/ValleySans[wght].ttf") format("truetype");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -13,8 +13,8 @@
 @font-face {
   font-family: "Valley Sans";
   src: url("/fonts/ValleySans-Italic[wght].woff2") format("woff2-variations"),
-       url("/fonts/ValleySans-Italic[wght].woff2") format("woff2"),
-       url("/fonts/ValleySans-Italic[wght].ttf") format("truetype");
+    url("/fonts/ValleySans-Italic[wght].woff2") format("woff2"),
+    url("/fonts/ValleySans-Italic[wght].ttf") format("truetype");
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;
@@ -33,7 +33,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #ddd5d5;
     --foreground: #ededed;
   }
 }
@@ -50,15 +50,13 @@ body {
 
 /* Glitter Text Effect */
 .glitter-text {
-  background: linear-gradient(
-    135deg,
-    #ff3b30 0%,
-    #ff6b5f 18%,
-    #ff2d20 35%,
-    #ffd1cc 50%,
-    #ff3b30 68%,
-    #d91f14 100%
-  );
+  background: linear-gradient(135deg,
+      #ff3b30 0%,
+      #ff6b5f 18%,
+      #ff2d20 35%,
+      #ffd1cc 50%,
+      #ff3b30 68%,
+      #d91f14 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -75,11 +73,11 @@ body {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 12% 20%, rgba(255,255,255,0.95) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 28% 72%, rgba(255,255,255,0.8) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 48% 38%, rgba(255,255,255,0.9) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 66% 18%, rgba(255,255,255,0.85) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 82% 62%, rgba(255,255,255,0.9) 0 1px, transparent 1.5px);
+    radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.95) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 28% 72%, rgba(255, 255, 255, 0.8) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 48% 38%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 66% 18%, rgba(255, 255, 255, 0.85) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 82% 62%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.5px);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   pointer-events: none;
@@ -91,10 +89,12 @@ body {
     opacity: 0.45;
     transform: translateX(0);
   }
+
   50% {
     opacity: 0.95;
     transform: translateX(1px);
   }
+
   100% {
     opacity: 0.45;
     transform: translateX(0);
