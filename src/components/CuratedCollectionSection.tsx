@@ -99,7 +99,7 @@ export default function CuratedCollectionSection({
   return (
     <section className="py-16 sm:py-24 bg-white border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
           <span className="text-xs font-extrabold uppercase tracking-widest text-[#D92323]">
@@ -115,7 +115,7 @@ export default function CuratedCollectionSection({
 
         {/* Interactive Showroom Stage — Clean, borderless & shadowless */}
         <div className="relative w-full max-w-5xl mx-auto flex flex-col items-center">
-          
+
           {/* Main Stage Image Container (Transparent / Pure White, no box or shadow) */}
           <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center">
             <Image
@@ -184,11 +184,10 @@ export default function CuratedCollectionSection({
           <div className="mt-8 flex flex-col items-center justify-center gap-3">
             <button
               onClick={handleAddAll}
-              className={`px-10 py-3.5 rounded-xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer active:scale-95 ${
-                isAddedAll
+              className={`px-10 py-3.5 rounded-xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer active:scale-95 ${isAddedAll
                   ? "bg-emerald-600 text-white"
                   : "bg-[#8c94a0] hover:bg-gray-800 text-white"
-              }`}
+                }`}
             >
               {isAddedAll ? (
                 <>

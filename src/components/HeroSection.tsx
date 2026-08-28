@@ -69,11 +69,6 @@ export default function HeroSection({ onBuildClick }: HeroSectionProps) {
               <span className="block whitespace-nowrap mt-1">YOUR SPACE</span>
               <span className="relative inline-block whitespace-nowrap mt-1">
                 <span className="glitter-text">OUR DESIGN.</span>
-
-                {/* sparkle dots */}
-                <span className="absolute -top-1 -right-4 text-red-400 text-xs">✦</span>
-                <span className="absolute top-4 -right-7 text-red-300 text-[10px]">✦</span>
-                <span className="absolute bottom-1 left-24 text-red-500 text-[10px]">✦</span>
               </span>
             </h1>
 
