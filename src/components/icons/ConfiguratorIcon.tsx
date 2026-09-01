@@ -8,59 +8,39 @@ export function ConfiguratorIcon({ className = "w-20 h-20" }: { className?: stri
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Browser window frame */}
-      <rect
-        x="18"
-        y="24"
-        width="76"
-        height="64"
-        rx="4"
-        stroke="#111111"
-        strokeWidth="2.2"
-      />
-      {/* Top Header line */}
-      <line x1="18" y1="38" x2="94" y2="38" stroke="#111111" strokeWidth="2.2" />
-      {/* 3 browser dots */}
-      <circle cx="26" cy="31" r="2.2" fill="#111111" />
-      <circle cx="33" cy="31" r="2.2" fill="#111111" />
-      <circle cx="40" cy="31" r="2.2" fill="#111111" />
-
-      {/* Plus symbol top right */}
+      {/* Outer Room Boundary Walls with Entrance Gap on right */}
       <path
-        d="M98 33H108M103 28V38"
+        d="M 98 62 V 96 H 22 V 22 H 98 V 52"
         stroke="#111111"
-        strokeWidth="2.4"
-        strokeLinecap="round"
+        strokeWidth="3"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+      />
+      {/* Inner Wall Detail */}
+      <path
+        d="M 92 62 V 90 H 28 V 28 H 92 V 52"
+        stroke="#111111"
+        strokeWidth="1.8"
+        strokeLinecap="square"
       />
 
-      {/* Modular Furniture Inside */}
-      {/* Left red accented cabinet */}
-      <rect
-        x="28"
-        y="48"
-        width="18"
-        height="32"
-        fill="#C64040"
-        stroke="#111111"
-        strokeWidth="2.2"
-        strokeLinejoin="round"
-      />
-      {/* Right cabinet */}
-      <rect
-        x="46"
-        y="48"
-        width="38"
-        height="32"
-        stroke="#111111"
-        strokeWidth="2.2"
-        strokeLinejoin="round"
-      />
-      {/* Inner grid lines */}
-      <line x1="65" y1="48" x2="65" y2="80" stroke="#111111" strokeWidth="2.2" />
-      <line x1="46" y1="64" x2="84" y2="64" stroke="#111111" strokeWidth="2.2" />
-      {/* Cabinet legs */}
-      <line x1="33" y1="80" x2="33" y2="86" stroke="#111111" strokeWidth="2.2" strokeLinecap="round" />
-      <line x1="79" y1="80" x2="79" y2="86" stroke="#111111" strokeWidth="2.2" strokeLinecap="round" />
+      {/* Left Aisle Fixtures (5 stacked shelf units) */}
+      <rect x="34" y="34" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+      <rect x="34" y="45" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+      <rect x="34" y="56" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+      <rect x="34" y="67" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+      <rect x="34" y="78" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+
+      {/* Center Selected Zone Island (2 RED filled vertical rectangles) */}
+      <rect x="55" y="44" width="10" height="28" fill="#D92323" stroke="#111111" strokeWidth="2" />
+      <rect x="65" y="44" width="10" height="28" fill="#D92323" stroke="#111111" strokeWidth="2" />
+
+      {/* Right Aisle Fixtures (5 stacked shelf units) */}
+      <rect x="80" y="34" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+      <rect x="80" y="45" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+      <rect x="80" y="56" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+      <rect x="80" y="67" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
+      <rect x="80" y="78" width="16" height="8" stroke="#111111" strokeWidth="2" fill="#FFFFFF" />
     </svg>
   );
 }
