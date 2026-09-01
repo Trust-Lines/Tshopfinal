@@ -10,11 +10,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-white font-sans selection:bg-red-500 selection:text-white">
       {/* Top Header */}
-      <Header
-        cartCount={totalCartCount}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenConfigurator={() => setIsConfiguratorOpen(true)}
-      />
+      <Header />
 
       <main className="flex-1">
         <HeroSection />

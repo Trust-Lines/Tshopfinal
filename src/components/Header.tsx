@@ -97,8 +97,8 @@ export default function Header() {
             </button>
 
             {/* "Fit Your Store" — hidden on small mobile, visible sm+ */}
-            <button
-              onClick={onOpenConfigurator}
+            <Link
+              href="/configurator"
               className="hidden sm:inline-flex px-4 py-2 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold text-xs rounded-lg transition-all duration-200"
             >
               Fit Your Store

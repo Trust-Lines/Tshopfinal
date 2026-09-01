@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   MapPin,
   Building2,
@@ -35,7 +36,8 @@ const PRODUCTS: Product[] = [
     industry: "Convenience",
     image: "/convenience_zone.jpg",
     isSpecialZoneCard: true,
-    zoneDescription: "Smart fixtures for everyday essentials\nand quick purchases.",
+    zoneDescription:
+      "Smart fixtures for everyday essentials\nand quick purchases.",
     piecesCount: 30,
   },
   {
@@ -100,11 +102,9 @@ const INDUSTRY_FILTERS = [
   { id: "Travel Stop", label: "Travel Stop" },
 ];
 
-export default function FixtureCatalog({
-  onAddToCart,
-  onOpenConfigurator,
-}: FixtureCatalogProps) {
-  const [selectedArea, setSelectedArea] = useState("all");
+export default function FixtureCatalog() {
+  const { addItem } = useCart();
+  const [selectedZone, setSelectedZone] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("all");
 
   const filteredProducts = PRODUCTS.filter((p) => {
@@ -216,10 +216,10 @@ export default function FixtureCatalog({
           {filteredProducts.map((product) => {
             if (product.isSpecialZoneCard) {
               return (
-                <div
+                <Link
                   key={product.id}
+                  href="/configurator"
                   className="border border-gray-200/90 rounded-2xl p-6 flex flex-col justify-between bg-white hover:border-gray-300 hover:shadow-md transition-all duration-200 group cursor-pointer"
-                  onClick={onOpenConfigurator}
                 >
                   {/* Special Zone Image Area */}
                   <div className="relative w-full h-52 sm:h-60 mb-5 bg-white flex items-center justify-center overflow-hidden rounded-xl">
@@ -228,6 +228,7 @@ export default function FixtureCatalog({
                       alt={product.title}
                       fill
                       priority
+                      sizes="(max-width: 640px) 100vw, 33vw"
                       className="object-contain p-1 group-hover:scale-103 transition-transform duration-300"
                     />
                   </div>
@@ -247,19 +248,13 @@ export default function FixtureCatalog({
                       <span className="bg-[#1c222b] text-white rounded-xl px-4 py-2 text-xs font-semibold shadow-xs">
                         {product.piecesCount} pieces
                       </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onOpenConfigurator) onOpenConfigurator();
-                        }}
-                        className="text-sm font-bold text-[#D92323] hover:text-red-700 flex items-center gap-1 transition-colors group/link"
-                      >
+                      <span className="text-sm font-bold text-[#D92323] group-hover:text-red-700 flex items-center gap-1 transition-colors">
                         <span>View Zone</span>
-                        <ChevronRight className="w-4 h-4 text-[#D92323] group-hover/link:translate-x-0.5 transition-transform" />
-                      </button>
+                        <ChevronRight className="w-4 h-4 text-[#D92323] group-hover:translate-x-0.5 transition-transform" />
+                      </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             }
 
@@ -274,6 +269,7 @@ export default function FixtureCatalog({
                     src={product.image}
                     alt={product.title}
                     fill
+                    sizes="(max-width: 640px) 100vw, 33vw"
                     className="object-contain p-2 group-hover:scale-103 transition-transform duration-300"
                   />
                 </div>
@@ -285,30 +281,43 @@ export default function FixtureCatalog({
                       {product.title}
                     </h3>
                     <p className="text-sm sm:text-base font-bold text-[#D92323] mt-1">
-                      ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      $
+                      {product.price.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                      })}
                     </p>
                     <p className="text-xs text-gray-400 font-normal mt-0.5">
                       {product.displayCategory}
                     </p>
                   </div>
 
-                {/* Add to Cart Button */}
-                <button
-                  onClick={() => onAddToCart(product)}
-                  aria-label={`Add ${product.title} to cart`}
-                  className="w-10 h-10 rounded-full border border-[#D92323] text-[#D92323] flex items-center justify-center hover:bg-[#D92323] hover:text-white transition-all duration-150 shadow-xs shrink-0 cursor-pointer active:scale-95"
-                >
-                  <ShoppingCart className="w-4 h-4" strokeWidth={2} />
-                </button>
+                  {/* Add to Cart Button */}
+                  <button
+                    onClick={() =>
+                      addItem({
+                        id: product.id,
+                        title: product.title,
+                        price: product.price,
+                        image: product.image,
+                      })
+                    }
+                    aria-label={`Add ${product.title} to cart`}
+                    className="w-10 h-10 rounded-full border border-[#D92323] text-[#D92323] flex items-center justify-center hover:bg-[#D92323] hover:text-white transition-all duration-150 shadow-xs shrink-0 cursor-pointer active:scale-95"
+                  >
+                    <ShoppingCart className="w-4 h-4" strokeWidth={2} />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Empty state if filters yield no items */}
         {filteredProducts.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-gray-500 font-medium">No fixtures found matching selected filters.</p>
+            <p className="text-gray-500 font-medium">
+              No fixtures found matching selected filters.
+            </p>
             <button
               onClick={() => {
                 setSelectedZone("all");

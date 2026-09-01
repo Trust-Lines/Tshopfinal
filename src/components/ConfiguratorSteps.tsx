@@ -42,8 +42,8 @@ export default function ConfiguratorSteps() {
             return (
               <React.Fragment key={step.id}>
                 {/* Step Item */}
-                <div
-                  onClick={onOpenConfigurator}
+                <Link
+                  href="/configurator"
                   className="flex flex-col items-center text-center group cursor-pointer w-full md:w-auto"
                 >
                   {/* Circular Icon Container */}
