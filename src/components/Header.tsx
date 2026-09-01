@@ -38,9 +38,9 @@ export default function Header() {
             <Logo variant="full" height={34} />
           </a>
 
-          {/* ── Desktop Search Bar (md+) ─────────────────────────── */}
-          <div className="hidden md:flex flex-1 justify-center px-4 lg:px-8">
-            <div className="relative w-full max-w-lg">
+          {/* ── Desktop/Tablet Search Bar ─────────────────────────── */}
+          <div className="hidden md:flex flex-1 justify-center px-2 sm:px-4 lg:px-8">
+            <div className="relative w-full max-w-xs md:max-w-sm lg:max-w-lg">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                 <Search className="w-4 h-4" />
               </div>
@@ -51,7 +51,7 @@ export default function Header() {
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                 placeholder="Search fixtures, categories, and more..."
-                className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400 focus:bg-white transition-all"
+                className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs sm:text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400 focus:bg-white transition-all"
               />
               {searchQuery && (
                 <button
@@ -97,8 +97,8 @@ export default function Header() {
             </button>
 
             {/* "Fit Your Store" — hidden on small mobile, visible sm+ */}
-            <Link
-              href="/configurator"
+            <button
+              onClick={onOpenConfigurator}
               className="hidden sm:inline-flex px-4 py-2 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold text-xs rounded-lg transition-all duration-200"
             >
               Fit Your Store

@@ -80,7 +80,7 @@ export default function CuratedCollectionSection() {
   };
 
   return (
-    <section className="py-16 sm:py-24 bg-white border-t border-gray-100">
+    <section className="py-16 sm:py-24 bg-[#f7f8f8] border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section Header */}
@@ -89,11 +89,8 @@ export default function CuratedCollectionSection() {
             Curated Complete Setup
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-950 tracking-tight mt-1.5">
-            Nordic Industrial Collection
+            Contemporary Collection
           </h2>
-          <p className="text-sm sm:text-base text-gray-500 mt-2">
-            A cohesive collection of matching weathered wood & steel fixtures. Interactive hotspot preview — click any piece to inspect or bundle the entire room.
-          </p>
         </div>
 
         {/* Interactive Showroom Stage — Clean, borderless & shadowless */}
@@ -103,7 +100,7 @@ export default function CuratedCollectionSection() {
           <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center">
             <Image
               src="/curated_collection.jpg"
-              alt="Nordic Industrial Complete Store Collection"
+              alt="Contemporary Complete Store Collection"
               fill
               priority
               className="object-contain"
@@ -112,6 +109,14 @@ export default function CuratedCollectionSection() {
             {/* Interactive Hotspot Pins */}
             {COLLECTION_ITEMS.map((item) => {
               const isActive = activeHotspot?.id === item.id;
+              const isRightEdge = item.x > 70;
+              const isLeftEdge = item.x < 30;
+              const popoverAlign = isRightEdge
+                ? "right-0 left-auto translate-x-0"
+                : isLeftEdge
+                ? "left-0 translate-x-0"
+                : "left-1/2 -translate-x-1/2";
+
               return (
                 <div
                   key={item.id}
@@ -129,7 +134,7 @@ export default function CuratedCollectionSection() {
 
                   {/* Hotspot Popup Card */}
                   {isActive && (
-                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-60 sm:w-64 bg-white rounded-2xl border border-gray-200 shadow-xl p-4 z-30 animate-in fade-in zoom-in-95 duration-150">
+                    <div className={`absolute ${popoverAlign} bottom-full mb-3 w-56 sm:w-64 bg-white rounded-2xl border border-gray-200 shadow-xl p-4 z-30 animate-in fade-in zoom-in-95 duration-150`}>
                       <div className="flex justify-between items-start gap-2 mb-1">
                         <span className="text-xs font-bold text-gray-900 leading-snug">
                           {item.name}
@@ -168,8 +173,8 @@ export default function CuratedCollectionSection() {
             <button
               onClick={handleAddAll}
               className={`px-10 py-3.5 rounded-xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer active:scale-95 ${isAddedAll
-                  ? "bg-emerald-600 text-white"
-                  : "bg-[#8c94a0] hover:bg-gray-800 text-white"
+                ? "bg-emerald-600 text-white"
+                : "bg-[#8c94a0] hover:bg-gray-800 text-white"
                 }`}
             >
               {isAddedAll ? (
