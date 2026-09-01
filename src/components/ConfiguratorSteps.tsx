@@ -1,16 +1,13 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   ConfiguratorIcon,
   ChooseSizeIcon,
   SelectColorIcon,
   AddToCartIcon,
 } from "./icons";
-
-interface ConfiguratorStepsProps {
-  onOpenConfigurator?: () => void;
-}
 
 const STEPS = [
   {
@@ -39,7 +36,7 @@ const STEPS = [
   },
 ];
 
-export default function ConfiguratorSteps({ onOpenConfigurator }: ConfiguratorStepsProps) {
+export default function ConfiguratorSteps() {
   return (
     <section className="w-full bg-[#ECECEC] py-8 sm:py-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,8 +46,8 @@ export default function ConfiguratorSteps({ onOpenConfigurator }: ConfiguratorSt
             return (
               <React.Fragment key={step.id}>
                 {/* Step Item */}
-                <div
-                  onClick={onOpenConfigurator}
+                <Link
+                  href="/configurator"
                   className="flex flex-col items-center text-center group cursor-pointer w-full md:w-auto"
                 >
                   {/* Circular Icon Container */}
@@ -62,7 +59,7 @@ export default function ConfiguratorSteps({ onOpenConfigurator }: ConfiguratorSt
                   <h3 className="mt-3 text-xs sm:text-sm font-semibold text-gray-900 tracking-tight group-hover:text-[#D92323] transition-colors">
                     {step.title}
                   </h3>
-                </div>
+                </Link>
 
                 {/* Arrow Connector (between steps, desktop only) */}
                 {index < STEPS.length - 1 && (

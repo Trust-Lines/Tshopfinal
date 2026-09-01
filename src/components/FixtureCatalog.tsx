@@ -9,11 +9,7 @@ import {
   ArrowRight,
   ShoppingCart,
 } from "lucide-react";
-
-interface FixtureCatalogProps {
-  onAddToCart: (product: any) => void;
-  onOpenConfigurator?: () => void;
-}
+import { useCart } from "./cart/CartContext";
 
 export interface Product {
   id: string;
@@ -89,10 +85,8 @@ const INDUSTRY_FILTERS = [
   { id: "Travel Stop", label: "Travel Stop" },
 ];
 
-export default function FixtureCatalog({
-  onAddToCart,
-  onOpenConfigurator,
-}: FixtureCatalogProps) {
+export default function FixtureCatalog() {
+  const { addItem } = useCart();
   const [selectedArea, setSelectedArea] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("all");
 
@@ -230,7 +224,14 @@ export default function FixtureCatalog({
 
                 {/* Add to Cart Button */}
                 <button
-                  onClick={() => onAddToCart(product)}
+                  onClick={() =>
+                    addItem({
+                      id: product.id,
+                      title: product.title,
+                      price: product.price,
+                      image: product.image,
+                    })
+                  }
                   aria-label={`Add ${product.title} to cart`}
                   className="w-10 h-10 rounded-full border border-[#D92323] text-[#D92323] flex items-center justify-center hover:bg-[#D92323] hover:text-white transition-all duration-150 shadow-xs shrink-0 cursor-pointer active:scale-95"
                 >

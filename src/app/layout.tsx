@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CartProvider } from "@/components/cart/CartContext";
+import GlobalCart from "@/components/cart/GlobalCart";
 
 export const metadata: Metadata = {
   title: "T Shop Online Store | Retail Fixtures & 3D Store Layouts",
@@ -18,7 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased font-sans">
       <body className="min-h-full flex flex-col font-sans bg-white text-gray-900">
-        {children}
+        <CartProvider>
+          {children}
+          <GlobalCart />
+        </CartProvider>
       </body>
     </html>
   );

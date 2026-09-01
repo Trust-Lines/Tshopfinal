@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import Logo from "./Logo";
 import {
   Search,
@@ -9,14 +10,10 @@ import {
   X,
   Menu,
 } from "lucide-react";
+import { useCart } from "./cart/CartContext";
 
-interface HeaderProps {
-  cartCount: number;
-  onOpenCart: () => void;
-  onOpenConfigurator: () => void;
-}
-
-export default function Header({ cartCount, onOpenCart, onOpenConfigurator }: HeaderProps) {
+export default function Header() {
+  const { count: cartCount, openCart: onOpenCart } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -100,12 +97,12 @@ export default function Header({ cartCount, onOpenCart, onOpenConfigurator }: He
             </button>
 
             {/* "Fit Your Store" — hidden on small mobile, visible sm+ */}
-            <button
-              onClick={onOpenConfigurator}
+            <Link
+              href="/configurator"
               className="hidden sm:inline-flex px-4 py-2 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold text-xs rounded-lg transition-all duration-200"
             >
               Fit Your Store
-            </button>
+            </Link>
 
             {/* User Account */}
             <div className="relative">
@@ -196,15 +193,13 @@ export default function Header({ cartCount, onOpenCart, onOpenConfigurator }: He
       {/* ── Mobile Menu Drawer ───────────────────────────────── */}
       {isMobileMenuOpen && (
         <div className="sm:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-3">
-          <button
-            onClick={() => {
-              onOpenConfigurator();
-              setIsMobileMenuOpen(false);
-            }}
-            className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg transition-colors"
+          <Link
+            href="/configurator"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="block text-center w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg transition-colors"
           >
             Fit Your Store
-          </button>
+          </Link>
           <a href="#layouts" className="block py-2 text-sm text-gray-700 hover:text-red-600 transition-colors">
             My Saved Store Layouts
           </a>

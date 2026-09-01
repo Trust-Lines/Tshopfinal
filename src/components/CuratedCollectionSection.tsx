@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Plus, Check, ShoppingCart, Sparkles, Layers, ShieldCheck } from "lucide-react";
+import { useCart } from "./cart/CartContext";
 
 interface CollectionItem {
   id: string;
@@ -11,11 +12,6 @@ interface CollectionItem {
   specs: string;
   x: number;
   y: number;
-}
-
-interface CuratedCollectionProps {
-  onAddToCart: (product: any) => void;
-  onAddBundleToCart?: (items: any[]) => void;
 }
 
 const COLLECTION_ITEMS: CollectionItem[] = [
@@ -61,10 +57,8 @@ const COLLECTION_ITEMS: CollectionItem[] = [
   },
 ];
 
-export default function CuratedCollectionSection({
-  onAddToCart,
-  onAddBundleToCart,
-}: CuratedCollectionProps) {
+export default function CuratedCollectionSection() {
+  const { addItem, addBundle } = useCart();
   const [activeHotspot, setActiveHotspot] = useState<CollectionItem | null>(null);
   const [isAddedAll, setIsAddedAll] = useState(false);
 
@@ -72,26 +66,15 @@ export default function CuratedCollectionSection({
   const bundleDiscountPrice = 4990;
 
   const handleAddAll = () => {
-    if (onAddBundleToCart) {
-      const bundle = COLLECTION_ITEMS.map((item) => ({
+    addBundle(
+      COLLECTION_ITEMS.map((item) => ({
         id: item.id,
         title: item.name,
         price: item.price,
         image: "/curated_collection.jpg",
         quantity: 1,
-      }));
-      onAddBundleToCart(bundle);
-    } else {
-      COLLECTION_ITEMS.forEach((item) => {
-        onAddToCart({
-          id: item.id,
-          title: item.name,
-          price: item.price,
-          image: "/curated_collection.jpg",
-        });
-      });
-    }
-
+      }))
+    );
     setIsAddedAll(true);
     setTimeout(() => setIsAddedAll(false), 2500);
   };
@@ -160,7 +143,7 @@ export default function CuratedCollectionSection({
                       </p>
                       <button
                         onClick={() => {
-                          onAddToCart({
+                          addItem({
                             id: item.id,
                             title: item.name,
                             price: item.price,

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Inter_Tight } from "next/font/google";
 import { ArrowRight } from "lucide-react";
 
@@ -9,12 +10,7 @@ const interTight = Inter_Tight({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
-interface HeroSectionProps {
-  onBuildClick: () => void;
-  onAddToCart: (item: any) => void;
-}
-
-export default function HeroSection({ onBuildClick }: HeroSectionProps) {
+export default function HeroSection() {
   return (
     <section className="bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
@@ -82,13 +78,13 @@ export default function HeroSection({ onBuildClick }: HeroSectionProps) {
             </div>
 
             <div>
-              <button
-                onClick={onBuildClick}
+              <Link
+                href="/configurator"
                 className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-sm rounded-full shadow-lg shadow-red-600/25 transition-all duration-150 group cursor-pointer"
               >
                 <span>Build Your Store</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-              </button>
+              </Link>
             </div>
           </div>
 
