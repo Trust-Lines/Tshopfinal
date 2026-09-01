@@ -175,7 +175,7 @@ export default function FixtureCatalog({
                   <button
                     key={filter.id}
                     onClick={() => setSelectedZone(filter.id)}
-                    className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 ${
+                    className={`px-3.5 sm:px-4 lg:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 ${
                       isActive
                         ? "bg-[#D92323] text-white shadow-sm"
                         : "bg-white border border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50/80"
@@ -201,7 +201,7 @@ export default function FixtureCatalog({
                   <button
                     key={filter.id}
                     onClick={() => setSelectedIndustry(filter.id)}
-                    className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 ${
+                    className={`px-3.5 sm:px-4 lg:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 ${
                       isActive
                         ? "bg-[#D92323] text-white shadow-sm"
                         : "bg-white border border-gray-200 text-gray-800 hover:border-gray-300 hover:bg-gray-50/80"

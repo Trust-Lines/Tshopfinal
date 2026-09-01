@@ -20,10 +20,10 @@ export default function HeroSection({ onBuildClick }: HeroSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
 
         {/* Hero Split Panel: Video on Left, Text on Right */}
-        <div className="overflow-hidden flex flex-col-reverse lg:flex-row items-center min-h-[480px] gap-6 lg:gap-8">
+        <div className="overflow-hidden flex flex-col-reverse lg:flex-row items-center gap-6 lg:gap-8">
 
           {/* LEFT — Video Panel */}
-          <div className="relative w-full lg:w-1/2 min-h-[360px] lg:min-h-[480px] bg-gray-100 overflow-hidden rounded-2xl">
+          <div className="relative w-full lg:w-1/2 min-h-[260px] sm:min-h-[340px] lg:min-h-[480px] bg-gray-100 overflow-hidden rounded-2xl">
             <video
               src="/store_preview.mp4"
               autoPlay
@@ -50,24 +50,25 @@ export default function HeroSection({ onBuildClick }: HeroSectionProps) {
           </div>
 
           {/* RIGHT — Text Content */}
-          <div className="w-full lg:w-1/2 p-4 sm:p-8 lg:p-10 flex flex-col justify-center bg-white">
+          <div className="w-full lg:w-1/2 p-2 sm:p-6 lg:p-10 flex flex-col justify-center bg-white">
             <h1
               className={`
                 ${interTight.className}
-                text-[44px]
-                sm:text-[58px]
-                md:text-[64px]
+                text-[36px]
+                sm:text-[48px]
+                md:text-[54px]
+                lg:text-[64px]
                 xl:text-[72px]
                 font-light
                 tracking-[-0.045em]
                 leading-[0.92]
                 text-gray-950
-                mb-6
+                mb-5
               `}
             >
-              <span className="block whitespace-nowrap">YOUR STORE</span>
-              <span className="block whitespace-nowrap mt-1">YOUR SPACE</span>
-              <span className="relative inline-block whitespace-nowrap mt-1">
+              <span className="block sm:whitespace-nowrap">YOUR STORE</span>
+              <span className="block sm:whitespace-nowrap mt-1">YOUR SPACE</span>
+              <span className="relative inline-block sm:whitespace-nowrap mt-1">
                 <span className="glitter-text">OUR DESIGN.</span>
               </span>
             </h1>

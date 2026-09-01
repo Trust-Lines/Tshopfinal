@@ -126,6 +126,14 @@ export default function CuratedCollectionSection({
             {/* Interactive Hotspot Pins */}
             {COLLECTION_ITEMS.map((item) => {
               const isActive = activeHotspot?.id === item.id;
+              const isRightEdge = item.x > 70;
+              const isLeftEdge = item.x < 30;
+              const popoverAlign = isRightEdge
+                ? "right-0 left-auto translate-x-0"
+                : isLeftEdge
+                ? "left-0 translate-x-0"
+                : "left-1/2 -translate-x-1/2";
+
               return (
                 <div
                   key={item.id}
@@ -143,7 +151,7 @@ export default function CuratedCollectionSection({
 
                   {/* Hotspot Popup Card */}
                   {isActive && (
-                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-60 sm:w-64 bg-white rounded-2xl border border-gray-200 shadow-xl p-4 z-30 animate-in fade-in zoom-in-95 duration-150">
+                    <div className={`absolute ${popoverAlign} bottom-full mb-3 w-56 sm:w-64 bg-white rounded-2xl border border-gray-200 shadow-xl p-4 z-30 animate-in fade-in zoom-in-95 duration-150`}>
                       <div className="flex justify-between items-start gap-2 mb-1">
                         <span className="text-xs font-bold text-gray-900 leading-snug">
                           {item.name}

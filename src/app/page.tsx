@@ -80,7 +80,7 @@ export default function Home() {
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans selection:bg-red-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-white font-sans selection:bg-red-500 selection:text-white overflow-x-hidden">
       {/* Top Header */}
       <Header
         cartCount={totalCartCount}
