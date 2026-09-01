@@ -8,6 +8,7 @@ import {
   SlidersHorizontal,
   ArrowRight,
   ShoppingCart,
+  ChevronRight,
 } from "lucide-react";
 
 interface FixtureCatalogProps {
@@ -19,25 +20,34 @@ export interface Product {
   id: string;
   title: string;
   price: number;
-  area: string;
+  zone: string;
+  displayCategory: string;
   industry: string;
   image: string;
+  isSpecialZoneCard?: boolean;
+  zoneDescription?: string;
+  piecesCount?: number;
 }
 
 const PRODUCTS: Product[] = [
   {
-    id: "gondola-shelving",
-    title: "Gondola Shelving Unit",
-    price: 849.0,
-    area: "Aisles & Gondolas",
-    industry: "Grocery",
-    image: "/gondola_shelving_unit.jpg",
+    id: "convenience-zone-card",
+    title: "The Convenience Zone",
+    price: 0,
+    zone: "Convenience",
+    displayCategory: "Convenience",
+    industry: "Convenience",
+    image: "/convenience_zone.jpg",
+    isSpecialZoneCard: true,
+    zoneDescription: "Smart fixtures for everyday essentials\nand quick purchases.",
+    piecesCount: 30,
   },
   {
     id: "wall-display",
     title: "Wall Display Unit",
     price: 699.0,
-    area: "Aisles & Gondolas",
+    zone: "Gondola",
+    displayCategory: "Aisles & Gondolas",
     industry: "Convenience",
     image: "/wall_display_unit.jpg",
   },
@@ -45,7 +55,8 @@ const PRODUCTS: Product[] = [
     id: "cashier-counter",
     title: "Cashier Counter",
     price: 1299.0,
-    area: "Cashier",
+    zone: "Checkout",
+    displayCategory: "Cashier",
     industry: "Convenience",
     image: "/cashier_counter.jpg",
   },
@@ -53,7 +64,8 @@ const PRODUCTS: Product[] = [
     id: "coffee-island",
     title: "Coffee Island",
     price: 2199.0,
-    area: "Coffee & Food",
+    zone: "Food & Beverage",
+    displayCategory: "Coffee & Food",
     industry: "Travel Stop",
     image: "/coffee_island.jpg",
   },
@@ -61,7 +73,8 @@ const PRODUCTS: Product[] = [
     id: "end-cap-display",
     title: "End Cap Display",
     price: 529.0,
-    area: "Aisles & Gondolas",
+    zone: "Gondola",
+    displayCategory: "Aisles & Gondolas",
     industry: "Grocery",
     image: "/end_cap_display.jpg",
   },
@@ -69,17 +82,19 @@ const PRODUCTS: Product[] = [
     id: "beverage-cooler",
     title: "Beverage Cooler",
     price: 1899.0,
-    area: "Aisles & Gondolas",
+    zone: "Food & Beverage",
+    displayCategory: "Aisles & Gondolas",
     industry: "Convenience",
     image: "/beverage_cooler.jpg",
   },
 ];
 
-const AREA_FILTERS = [
-  { id: "all", label: "All Products" },
-  { id: "Aisles & Gondolas", label: "Aisles & Gondolas" },
-  { id: "Cashier", label: "Cashier" },
-  { id: "Coffee & Food", label: "Coffee & Food" },
+const ZONE_FILTERS = [
+  { id: "all", label: "All Zones" },
+  { id: "Convenience", label: "Convenience" },
+  { id: "Gondola", label: "Gondola" },
+  { id: "Checkout", label: "Checkout" },
+  { id: "Food & Beverage", label: "Food & Beverage" },
 ];
 
 const INDUSTRY_FILTERS = [
@@ -93,14 +108,17 @@ export default function FixtureCatalog({
   onAddToCart,
   onOpenConfigurator,
 }: FixtureCatalogProps) {
-  const [selectedArea, setSelectedArea] = useState("all");
+  const [selectedZone, setSelectedZone] = useState("all");
   const [selectedIndustry, setSelectedIndustry] = useState("all");
 
   const filteredProducts = PRODUCTS.filter((p) => {
-    const matchArea = selectedArea === "all" || p.area === selectedArea;
+    const matchZone =
+      selectedZone === "all" ||
+      p.zone === selectedZone ||
+      (selectedZone === "Convenience" && p.industry === "Convenience");
     const matchIndustry =
       selectedIndustry === "all" || p.industry === selectedIndustry;
-    return matchArea && matchIndustry;
+    return matchZone && matchIndustry;
   });
 
   return (
@@ -113,25 +131,25 @@ export default function FixtureCatalog({
               Shop the fixtures you need
             </h2>
             <p className="text-sm sm:text-base text-gray-500 mt-1">
-              Browse by area or store type.
+              Browse by zone or store type.
             </p>
           </div>
 
           <div className="flex items-center gap-4 self-start sm:self-auto">
             <button
               onClick={() => {
-                setSelectedArea("all");
+                setSelectedZone("all");
                 setSelectedIndustry("all");
               }}
-              className="text-xs sm:text-sm font-semibold text-gray-900 hover:text-red-600 transition-colors flex items-center gap-1.5 group"
+              className="text-xs sm:text-sm font-semibold text-[#D92323] hover:text-red-700 transition-colors flex items-center gap-1.5 group"
             >
               <span>View All Products</span>
-              <ArrowRight className="w-4 h-4 text-red-600 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-[#D92323] group-hover:translate-x-0.5 transition-transform" />
             </button>
 
             <button
               onClick={() => {
-                setSelectedArea("all");
+                setSelectedZone("all");
                 setSelectedIndustry("all");
               }}
               className="inline-flex items-center gap-2 px-3.5 py-2 border border-gray-200 hover:border-gray-300 rounded-xl text-xs sm:text-sm font-semibold text-gray-800 bg-white hover:bg-gray-50 transition-colors shadow-2xs"
@@ -144,19 +162,19 @@ export default function FixtureCatalog({
 
         {/* Filters Card Container */}
         <div className="border border-gray-200/80 rounded-2xl p-4 sm:p-5 mb-10 bg-white shadow-2xs space-y-4">
-          {/* Row 1: Area */}
+          {/* Row 1: Zones */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex items-center gap-2 w-28 shrink-0 text-gray-800 font-semibold text-xs sm:text-sm">
               <MapPin className="w-4 h-4 text-gray-500 shrink-0" />
-              <span>Area</span>
+              <span>Zones</span>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-1">
-              {AREA_FILTERS.map((filter) => {
-                const isActive = selectedArea === filter.id;
+              {ZONE_FILTERS.map((filter) => {
+                const isActive = selectedZone === filter.id;
                 return (
                   <button
                     key={filter.id}
-                    onClick={() => setSelectedArea(filter.id)}
+                    onClick={() => setSelectedZone(filter.id)}
                     className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-150 ${
                       isActive
                         ? "bg-[#D92323] text-white shadow-sm"
@@ -199,46 +217,97 @@ export default function FixtureCatalog({
 
         {/* Product Grid: 3 columns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="border border-gray-200/90 rounded-2xl p-5 flex flex-col justify-between bg-white hover:border-gray-300 hover:shadow-md transition-all duration-200 group"
-            >
-              {/* Product Image Area */}
-              <div className="relative w-full h-56 sm:h-60 mb-4 bg-white flex items-center justify-center overflow-hidden rounded-xl">
-                <Image
-                  src={product.image}
-                  alt={product.title}
-                  fill
-                  className="object-contain p-2 group-hover:scale-103 transition-transform duration-300"
-                />
-              </div>
+          {filteredProducts.map((product) => {
+            if (product.isSpecialZoneCard) {
+              return (
+                <div
+                  key={product.id}
+                  className="border border-gray-200/90 rounded-2xl p-6 flex flex-col justify-between bg-white hover:border-gray-300 hover:shadow-md transition-all duration-200 group cursor-pointer"
+                  onClick={onOpenConfigurator}
+                >
+                  {/* Special Zone Image Area */}
+                  <div className="relative w-full h-52 sm:h-60 mb-5 bg-white flex items-center justify-center overflow-hidden rounded-xl">
+                    <Image
+                      src={product.image}
+                      alt={product.title}
+                      fill
+                      priority
+                      className="object-contain p-1 group-hover:scale-103 transition-transform duration-300"
+                    />
+                  </div>
 
-              {/* Product Info & Cart Button */}
-              <div className="flex items-end justify-between pt-2">
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-gray-950 tracking-tight leading-snug">
-                    {product.title}
-                  </h3>
-                  <p className="text-sm sm:text-base font-bold text-[#D92323] mt-1">
-                    ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs text-gray-400 font-normal mt-0.5">
-                    {product.area}
-                  </p>
+                  {/* Info & Bottom Zone Action */}
+                  <div className="flex flex-col justify-between flex-1">
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-950 tracking-tight leading-snug">
+                        {product.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 font-medium mt-2 leading-relaxed whitespace-pre-line max-w-[280px]">
+                        {product.zoneDescription}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-8 pt-2">
+                      <span className="bg-[#1c222b] text-white rounded-xl px-4 py-2 text-xs font-semibold shadow-xs">
+                        {product.piecesCount} pieces
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onOpenConfigurator) onOpenConfigurator();
+                        }}
+                        className="text-sm font-bold text-[#D92323] hover:text-red-700 flex items-center gap-1 transition-colors group/link"
+                      >
+                        <span>View Zone</span>
+                        <ChevronRight className="w-4 h-4 text-[#D92323] group-hover/link:translate-x-0.5 transition-transform" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div
+                key={product.id}
+                className="border border-gray-200/90 rounded-2xl p-5 flex flex-col justify-between bg-white hover:border-gray-300 hover:shadow-md transition-all duration-200 group"
+              >
+                {/* Product Image Area */}
+                <div className="relative w-full h-52 sm:h-56 mb-4 bg-white flex items-center justify-center overflow-hidden rounded-xl">
+                  <Image
+                    src={product.image}
+                    alt={product.title}
+                    fill
+                    className="object-contain p-2 group-hover:scale-103 transition-transform duration-300"
+                  />
                 </div>
 
-                {/* Add to Cart Button */}
-                <button
-                  onClick={() => onAddToCart(product)}
-                  aria-label={`Add ${product.title} to cart`}
-                  className="w-10 h-10 rounded-full border border-[#D92323] text-[#D92323] flex items-center justify-center hover:bg-[#D92323] hover:text-white transition-all duration-150 shadow-xs shrink-0 cursor-pointer active:scale-95"
-                >
-                  <ShoppingCart className="w-4 h-4" strokeWidth={2} />
-                </button>
+                {/* Product Info & Cart Button */}
+                <div className="flex items-end justify-between pt-2">
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-gray-950 tracking-tight leading-snug">
+                      {product.title}
+                    </h3>
+                    <p className="text-sm sm:text-base font-bold text-[#D92323] mt-1">
+                      ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-gray-400 font-normal mt-0.5">
+                      {product.displayCategory}
+                    </p>
+                  </div>
+
+                  {/* Add to Cart Button */}
+                  <button
+                    onClick={() => onAddToCart(product)}
+                    aria-label={`Add ${product.title} to cart`}
+                    className="w-10 h-10 rounded-full border border-[#D92323] text-[#D92323] flex items-center justify-center hover:bg-[#D92323] hover:text-white transition-all duration-150 shadow-xs shrink-0 cursor-pointer active:scale-95"
+                  >
+                    <ShoppingCart className="w-4 h-4" strokeWidth={2} />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Empty state if filters yield no items */}
@@ -247,10 +316,10 @@ export default function FixtureCatalog({
             <p className="text-gray-500 font-medium">No fixtures found matching selected filters.</p>
             <button
               onClick={() => {
-                setSelectedArea("all");
+                setSelectedZone("all");
                 setSelectedIndustry("all");
               }}
-              className="mt-3 text-sm font-semibold text-red-600 hover:underline"
+              className="mt-3 text-sm font-semibold text-[#D92323] hover:underline"
             >
               Reset Filters
             </button>
