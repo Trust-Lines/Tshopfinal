@@ -388,136 +388,136 @@ export default function ConfiguratorFlow() {
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col lg:block overflow-hidden bg-[#faf9f7] text-gray-900 font-sans">
+    <div className="relative w-full h-full flex flex-col lg:flex-row overflow-hidden bg-[#faf9f7] text-gray-900 font-sans">
       
       {/* ════════════════════════════════════════════════════════════
-          SUB-HEADER: Breadcrumbs & Step Indicator (Matching Mockup)
+          LEFT STAGE: SUB-HEADER & 3D CANVAS (Fills left & center)
          ════════════════════════════════════════════════════════════ */}
-      <div className="shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200/80 px-4 sm:px-6 py-2.5 sm:py-3 z-20">
-        <div className="max-w-7xl mx-auto flex flex-col gap-1 sm:gap-1.5">
-          {/* Breadcrumb row */}
-          <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
-            <span>PLAN</span>
-            <span className="text-gray-300">/</span>
-            <span className="text-[#D92C32]">CONFIGURE</span>
-            <span className="text-gray-300">/</span>
-            <span>OUTFIT</span>
-            <span className="text-gray-300">/</span>
-            <span>GROW</span>
-          </div>
-
-          {/* Title and Stepper Circles row */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-black text-gray-950 tracking-tight leading-tight truncate">
-                {stepTitles[step].title}
-              </h1>
-              <p className="text-[11px] sm:text-xs text-gray-500 truncate leading-snug mt-0.5">
-                {stepTitles[step].sub}
-              </p>
+      <div className="flex-1 flex flex-col h-full min-w-0 relative overflow-hidden">
+        {/* SUB-HEADER: Breadcrumbs & Step Indicator (Matching Mockup) */}
+        <div className="shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200/80 px-4 sm:px-6 py-2.5 sm:py-3 z-20">
+          <div className="max-w-7xl mx-auto flex flex-col gap-1 sm:gap-1.5">
+            {/* Breadcrumb row */}
+            <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+              <span>PLAN</span>
+              <span className="text-gray-300">/</span>
+              <span className="text-[#D92C32]">CONFIGURE</span>
+              <span className="text-gray-300">/</span>
+              <span>OUTFIT</span>
+              <span className="text-gray-300">/</span>
+              <span>GROW</span>
             </div>
 
-            {/* Stepper circles: (1) (2) (3) with green checks when done */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              {([1, 2, 3] as const).map((n) => {
-                const isCurrent = step === n;
-                const isPassed = step > n;
-                return (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => {
-                      if (isPassed || (n === 2 && selectedZoneIds.length > 0)) {
-                        setStep(n);
-                      }
-                    }}
-                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                      isCurrent
-                        ? "bg-[#D92C32] text-white shadow-sm"
-                        : isPassed
-                        ? "bg-emerald-600 text-white cursor-pointer"
-                        : "bg-gray-200 text-gray-600 cursor-default"
-                    }`}
-                  >
-                    {isPassed ? (
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    ) : (
-                      n
-                    )}
-                  </button>
-                );
-              })}
+            {/* Title and Stepper Circles row */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-black text-gray-950 tracking-tight leading-tight truncate">
+                  {stepTitles[step].title}
+                </h1>
+                <p className="text-[11px] sm:text-xs text-gray-500 truncate leading-snug mt-0.5">
+                  {stepTitles[step].sub}
+                </p>
+              </div>
+
+              {/* Stepper circles: (1) (2) (3) with green checks when done */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {([1, 2, 3] as const).map((n) => {
+                  const isCurrent = step === n;
+                  const isPassed = step > n;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        if (isPassed || (n === 2 && selectedZoneIds.length > 0)) {
+                          setStep(n);
+                        }
+                      }}
+                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                        isCurrent
+                          ? "bg-[#D92C32] text-white shadow-sm"
+                          : isPassed
+                          ? "bg-emerald-600 text-white cursor-pointer"
+                          : "bg-gray-200 text-gray-600 cursor-default"
+                      }`}
+                    >
+                      {isPassed ? (
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      ) : (
+                        n
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* 3D VIEWPORT CONTAINER */}
+        <div className="relative w-full h-[36vh] sm:h-[40vh] lg:h-auto lg:flex-1 shrink-0 overflow-hidden bg-[#f4f3f0]">
+          <StoreScene rows={sceneRows} view={step === 3 ? view : "3q"} />
+
+          {/* Step 1 Overlay: "3D View" badge top-right */}
+          {step === 1 && (
+            <div className="absolute top-3 right-3 z-10">
+              <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-gray-800 border border-gray-200 shadow-sm pointer-events-none">
+                <Boxes className="w-3.5 h-3.5 text-[#D92C32]" />
+                <span>3D View</span>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2 Overlay: "Tap & drag to rotate" badge bottom-center */}
+          {step === 2 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+              <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-800 border border-gray-200 shadow-md pointer-events-none">
+                <span className="text-sm leading-none">👆</span>
+                <span>Tap &amp; drag to rotate</span>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3 Overlay: Camera views pills bottom-center */}
+          {step === 3 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+              <div className="flex items-center gap-1 p-1 rounded-full bg-white/95 backdrop-blur-md border border-gray-200 shadow-md">
+                {(["front", "3q", "top"] as SceneView[]).map((v) => {
+                  const isSel = view === v;
+                  const label = v === "front" ? "Front" : v === "3q" ? "Angle" : "Top";
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setView(v)}
+                      className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        isSel
+                          ? "bg-[#D92C32] text-white shadow-sm"
+                          : "text-gray-700 hover:text-gray-950 font-medium"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* ════════════════════════════════════════════════════════════
-          3D VIEWPORT CONTAINER
-          - On mobile (<lg): Sits in upper section of flex-col
-          - On desktop (lg+): Full-screen background stage
-         ════════════════════════════════════════════════════════════ */}
-      <div className="relative w-full h-[36vh] sm:h-[40vh] lg:absolute lg:inset-0 lg:top-0 lg:h-full shrink-0 overflow-hidden bg-[#f4f3f0]">
-        <StoreScene rows={sceneRows} view={step === 3 ? view : "3q"} />
-
-        {/* Step 1 Overlay: "3D View" badge top-right */}
-        {step === 1 && (
-          <div className="absolute top-3 right-3 z-10">
-            <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-gray-800 border border-gray-200 shadow-sm pointer-events-none">
-              <Boxes className="w-3.5 h-3.5 text-[#D92C32]" />
-              <span>3D View</span>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2 Overlay: "Tap & drag to rotate" badge bottom-center */}
-        {step === 2 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
-            <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-800 border border-gray-200 shadow-md pointer-events-none">
-              <span className="text-sm leading-none">👆</span>
-              <span>Tap &amp; drag to rotate</span>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3 Overlay: Camera views pills bottom-center */}
-        {step === 3 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
-            <div className="flex items-center gap-1 p-1 rounded-full bg-white/95 backdrop-blur-md border border-gray-200 shadow-md">
-              {(["front", "3q", "top"] as SceneView[]).map((v) => {
-                const isSel = view === v;
-                const label = v === "front" ? "Front" : v === "3q" ? "Angle" : "Top";
-                return (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setView(v)}
-                    className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      isSel
-                        ? "bg-[#D92C32] text-white shadow-sm"
-                        : "text-gray-700 hover:text-gray-950 font-medium"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ════════════════════════════════════════════════════════════
-          BOTTOM SHEET / INTERACTIVE PANEL
-          - On mobile (<lg): Rounded bottom sheet occupying lower screen
-          - On desktop (lg+): Floating glass drawer on right side
+          CONFIGURATION PANEL:
+          - On mobile (<lg): Bottom sheet occupying lower screen
+          - On desktop (lg+): FULL RIGHT SIDEBAR (docked full height, 0 margin)
          ════════════════════════════════════════════════════════════ */}
       <div
-        className={`relative z-20 flex-1 flex flex-col bg-white rounded-t-[28px] sm:rounded-t-[32px] lg:rounded-2xl lg:absolute lg:top-24 lg:bottom-6 lg:right-6 lg:w-[410px] lg:max-h-[calc(100vh-130px)] shadow-[0_-8px_32px_rgba(0,0,0,0.09)] lg:shadow-2xl border border-gray-200/80 overflow-hidden transition-all duration-300 ${
-          panelOpen
-            ? "translate-y-0 opacity-100"
-            : "translate-y-8 opacity-0 pointer-events-none"
-        }`}
+        className="relative z-20 flex-1 lg:flex-none flex flex-col bg-white
+          rounded-t-[28px] sm:rounded-t-[32px] lg:rounded-none
+          lg:w-[460px] xl:w-[500px] 2xl:w-[540px] lg:h-full
+          shadow-[0_-8px_32px_rgba(0,0,0,0.09)] lg:shadow-xl
+          border-t lg:border-t-0 lg:border-l border-gray-200
+          overflow-hidden shrink-0"
       >
         {/* Grab Handle for Mobile */}
         <div className="lg:hidden w-12 h-1 bg-gray-300 rounded-full mx-auto mt-2.5 mb-1.5 shrink-0 cursor-pointer" />
@@ -526,14 +526,14 @@ export default function ConfiguratorFlow() {
         {step === 1 && (
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-2 space-y-4">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-5">
               {/* 1 Store Type */}
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2.5">
                   <span className="w-5 h-5 rounded-full bg-[#D92C32] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                     1
                   </span>
-                  <h2 className="text-xs font-bold text-gray-900">
+                  <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
                     Store Type
                   </h2>
                 </div>
@@ -545,14 +545,14 @@ export default function ConfiguratorFlow() {
                         key={st.id}
                         type="button"
                         onClick={() => setSelectedStoreId(st.id)}
-                        className={`py-2.5 px-2 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                        className={`py-2.5 px-2 sm:px-3 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                           isSelected
                             ? "bg-[#D92C32] text-white border-transparent shadow-sm"
                             : "bg-white border-gray-200 text-gray-800 hover:border-gray-300"
                         }`}
                       >
-                        {getStoreIcon(st.id, "w-3.5 h-3.5")}
-                        <span className="truncate">{st.name}</span>
+                        {getStoreIcon(st.id, "w-3.5 h-3.5 shrink-0")}
+                        <span>{st.name}</span>
                       </button>
                     );
                   })}
@@ -561,13 +561,13 @@ export default function ConfiguratorFlow() {
 
               {/* 2 Select Zones */}
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2.5">
                   <span className="w-5 h-5 rounded-full bg-[#D92C32] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                     2
                   </span>
-                  <h2 className="text-xs font-bold text-gray-900">
+                  <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
                     Select Zones{" "}
-                    <span className="text-gray-500 font-normal">
+                    <span className="text-gray-500 font-normal lowercase tracking-normal">
                       ({selectedZoneIds.length} selected)
                     </span>
                   </h2>
