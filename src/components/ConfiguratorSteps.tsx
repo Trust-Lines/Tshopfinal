@@ -2,83 +2,88 @@
 
 import React from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import {
   ConfiguratorIcon,
   ChooseSizeIcon,
-  SelectColorIcon,
   AddToCartIcon,
 } from "./icons";
 
 const STEPS = [
   {
-    id: "zone",
-    title: "Pick a zone",
+    step: 1,
+    id: "choose",
+    title: "Choose Your Store",
+    desc: "Pick store type and select all the zones you need.",
     Icon: ConfiguratorIcon,
   },
   {
-    id: "dimensions",
-    title: "Enter your dimensions",
+    step: 2,
+    id: "configure",
+    title: "Configure Selected Zones",
+    desc: "Walk through only the zones you selected, one by one.",
     Icon: ChooseSizeIcon,
   },
   {
-    id: "3d-price",
-    title: "See it in 3D, with the price",
-    Icon: SelectColorIcon,
-  },
-  {
-    id: "order",
-    title: "Place your order",
+    step: 3,
+    id: "review",
+    title: "Review Your Store",
+    desc: "See the combined store in 3D, check the price, and order.",
     Icon: AddToCartIcon,
   },
 ];
 
 export default function ConfiguratorSteps() {
   return (
-    <section className="w-full bg-[#ECECEC] py-16 sm:py-20 lg:py-24">
+    <section className="w-full bg-white py-16 sm:py-20 lg:py-24 border-t border-gray-100">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:flex md:items-start md:justify-between gap-8 md:gap-4 lg:gap-6">
-          {STEPS.map((step, index) => {
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10 sm:mb-12">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#D92C32] mb-1">
+              Streamlined Multi-Zone Journey
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-950">
+              How It Works
+            </h2>
+          </div>
+          <Link
+            href="/configurator"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#D92C32] hover:underline shrink-0"
+          >
+            Open the configurator <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5">
+          {STEPS.map((step) => {
             const IconComponent = step.Icon;
             return (
-              <React.Fragment key={step.id}>
-                {/* Step Item */}
-                <Link
-                  href="/configurator"
-                  className="flex flex-col items-center text-center group cursor-pointer w-full md:w-auto"
-                >
-                  {/* Circular Icon Container */}
-                  <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full bg-white flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-md relative shadow-2xs shrink-0">
-                    <IconComponent className="w-18 h-18 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 transition-transform duration-300 group-hover:scale-105" />
-                  </div>
+              <Link
+                key={step.id}
+                href="/configurator"
+                className="group relative flex flex-col p-6 sm:p-7 rounded-2xl bg-white border border-gray-200 hover:border-[#D92C32] hover:shadow-md transition-all duration-300"
+              >
+                {/* Step number — top right, no circles */}
+                <span className="absolute top-5 right-6 text-3xl font-black text-gray-100 group-hover:text-red-50 transition-colors leading-none select-none">
+                  {String(step.step).padStart(2, "0")}
+                </span>
 
-                  {/* Step Title */}
-                  <h3 className="mt-4 sm:mt-5 text-xs sm:text-sm lg:text-base font-semibold text-gray-950 tracking-tight leading-snug group-hover:text-[#D92323] transition-colors max-w-[150px] sm:max-w-[180px]">
-                    {step.title}
-                  </h3>
-                </Link>
+                {/* Icon in a clean rounded square */}
+                <div className="w-12 h-12 rounded-xl bg-red-50 text-[#D92C32] flex items-center justify-center mb-5 group-hover:bg-[#D92C32] group-hover:text-white transition-colors duration-300">
+                  <IconComponent className="w-6 h-6" />
+                </div>
 
-                {/* Arrow Connector (between steps, desktop lg+ only) */}
-                {index < STEPS.length - 1 && (
-                  <div className="hidden lg:flex items-center justify-center text-slate-400 self-start mt-16 shrink-0">
-                    <svg
-                      width="36"
-                      height="20"
-                      viewBox="0 0 36 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="text-slate-400"
-                    >
-                      <path
-                        d="M2 10H34M34 10L25 2M34 10L25 18"
-                        stroke="currentColor"
-                        strokeWidth="1.75"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </React.Fragment>
+                <h3 className="text-base sm:text-lg font-bold text-gray-950 tracking-tight leading-snug">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                  {step.desc}
+                </p>
+
+                <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-gray-400 group-hover:text-[#D92C32] transition-colors">
+                  Start here <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </Link>
             );
           })}
         </div>

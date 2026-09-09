@@ -102,17 +102,54 @@ export const GONDOLA_VARIANTS: Variant[] = [
   },
 ];
 
+export interface StoreType {
+  id: string;
+  name: string;
+  sub: string;
+  desc: string;
+}
+
+export const STORE_TYPES: StoreType[] = [
+  {
+    id: "cstore",
+    name: "C-Store",
+    sub: "Convenience retail",
+    desc: "Optimized for quick trips, high-margin impulse items, and high customer turnover.",
+  },
+  {
+    id: "grocery",
+    name: "Grocery Store",
+    sub: "Food retail",
+    desc: "Designed for full-basket weekly trips, high-density aisle shelving, and fresh food prep.",
+  },
+  {
+    id: "truck",
+    name: "Truck Stop",
+    sub: "Travel retail",
+    desc: "Built for heavy foot traffic, combined travel essentials, fast-food counters, and grab-and-go.",
+  },
+];
+
 export interface ZoneDef {
   id: string;
   label: string;
   tagline: string;
+  subLabel: string;
   hasModel: boolean;
+  modelFile?: string;
+  stepM?: number;
+  rotateY?: boolean;
   cartImage: string;
   /** placeholder footprint in metres for zones without a model (w along run, d, h) */
   placeholder?: { w: number; d: number; h: number; stepM: number };
   pricePerBay?: number; // for placeholder zones
   /** default run length in feet */
   defaultLenFt: number;
+  refLen: number;
+  basePrice: number;
+  fixtures: number;
+  heightOptions: string[];
+  depthOptions: string[];
 
   // ── stage-flow fields ─────────────────────────────
   kind: "shelf" | "counter";
@@ -132,11 +169,20 @@ export interface ZoneDef {
 export const ZONES: ZoneDef[] = [
   {
     id: "gondola",
-    label: "Gondola shelving",
-    tagline: "Main aisle & perimeter shelving",
+    label: "Gondola Shelving",
+    tagline: "Core products & everyday essentials",
+    subLabel: "Aisles & shelving",
     hasModel: true,
+    modelFile: "/models/zone-1.glb",
+    stepM: 1.0,
+    rotateY: false,
     cartImage: "/gondola_shelving_unit.jpg",
-    defaultLenFt: 24,
+    defaultLenFt: 20,
+    refLen: 20,
+    basePrice: 3280,
+    fixtures: 6,
+    heightOptions: ["53″ Standard", "77″ Standard"],
+    depthOptions: ["12″ Standard", "16″ Standard"],
     kind: "shelf",
     mod: 4,
     unitPrice: 820,
@@ -147,13 +193,22 @@ export const ZONES: ZoneDef[] = [
   },
   {
     id: "deli",
-    label: "Deli counter",
-    tagline: "Chilled serve-over counter run",
-    hasModel: false,
+    label: "Deli Counter",
+    tagline: "Service & fresh food for customer attraction.",
+    subLabel: "Service & fresh food",
+    hasModel: true,
+    modelFile: "/models/zone-2.glb",
+    stepM: 1.0,
+    rotateY: false,
     cartImage: "/end_cap_display.jpg",
     placeholder: { w: 1.0, d: 0.95, h: 1.25, stepM: 1.22 },
     pricePerBay: 2100,
-    defaultLenFt: 12,
+    defaultLenFt: 14,
+    refLen: 14,
+    basePrice: 2858,
+    fixtures: 4,
+    heightOptions: ["36″ Standard", "42″ Standard"],
+    depthOptions: ["24″ Standard", "30″ Standard"],
     kind: "counter",
     mod: 4,
     unitPrice: 2100,
@@ -164,13 +219,22 @@ export const ZONES: ZoneDef[] = [
   },
   {
     id: "coffee",
-    label: "Coffee counter",
-    tagline: "Self-serve coffee & grab-and-go",
-    hasModel: false,
+    label: "Coffee Counter",
+    tagline: "Beverages, snacks & grab-and-go",
+    subLabel: "Brew & condiments",
+    hasModel: true,
+    modelFile: "/models/zone-4.glb",
+    stepM: 2.49,
+    rotateY: true,
     cartImage: "/coffee_island.jpg",
     placeholder: { w: 1.0, d: 0.9, h: 1.15, stepM: 1.22 },
     pricePerBay: 1750,
-    defaultLenFt: 8,
+    defaultLenFt: 10,
+    refLen: 10,
+    basePrice: 2240,
+    fixtures: 4,
+    heightOptions: ["36″ Standard", "42″ Standard"],
+    depthOptions: ["24″ Standard", "30″ Standard"],
     kind: "counter",
     mod: 4,
     unitPrice: 1750,
@@ -181,16 +245,25 @@ export const ZONES: ZoneDef[] = [
   },
   {
     id: "front-checkout",
-    label: "Front checkout",
-    tagline: "Point-of-sale lanes at the entrance",
-    hasModel: false,
+    label: "Front Checkout",
+    tagline: "Primary customer checkout area",
+    subLabel: "Register area",
+    hasModel: true,
+    modelFile: "/models/zone-2.glb",
+    stepM: 1.0,
+    rotateY: false,
     cartImage: "/cashier_counter.jpg",
     placeholder: { w: 1.2, d: 1.0, h: 1.1, stepM: 1.52 },
-    pricePerBay: 2400,
-    defaultLenFt: 10,
+    pricePerBay: 2120,
+    defaultLenFt: 12,
+    refLen: 12,
+    basePrice: 2640,
+    fixtures: 4,
+    heightOptions: ["36″ Standard", "42″ Standard"],
+    depthOptions: ["24″ Standard", "30″ Standard"],
     kind: "counter",
-    mod: 5,
-    unitPrice: 2400,
+    mod: 4,
+    unitPrice: 2120,
     desc: "Register run",
     heights: [36, 42],
     depths: [24, 30],
@@ -198,19 +271,28 @@ export const ZONES: ZoneDef[] = [
   },
   {
     id: "back-counter",
-    label: "Back counter",
-    tagline: "Back-of-house prep & storage counter",
-    hasModel: false,
-    cartImage: "/cashier_counter.jpg",
+    label: "Back Counter",
+    tagline: "Staff workspace & storage",
+    subLabel: "Behind register",
+    hasModel: true,
+    modelFile: "/models/zone-3.glb",
+    stepM: 1.0,
+    rotateY: false,
+    cartImage: "/wall_display_unit.jpg",
     placeholder: { w: 1.0, d: 0.6, h: 1.4, stepM: 1.52 },
-    pricePerBay: 1600,
-    defaultLenFt: 16,
+    pricePerBay: 1650,
+    defaultLenFt: 10,
+    refLen: 10,
+    basePrice: 1572,
+    fixtures: 3,
+    heightOptions: ["36″ Standard", "53″ Standard"],
+    depthOptions: ["24″ Standard", "30″ Standard"],
     kind: "shelf",
-    mod: 5,
-    unitPrice: 1600,
+    mod: 4,
+    unitPrice: 1650,
     desc: "Behind the register",
-    heights: [53, 77],
-    depths: [12, 16],
+    heights: [36, 53],
+    depths: [24, 30],
     shelves: 4,
   },
 ];

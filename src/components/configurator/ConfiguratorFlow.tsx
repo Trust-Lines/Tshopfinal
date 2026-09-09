@@ -1,740 +1,1044 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { Sora, Inter, IBM_Plex_Mono } from "next/font/google";
+import {
+  Store,
+  ShoppingCart,
+  Truck,
+  Layers,
+  Coffee,
+  UtensilsCrossed,
+  CreditCard,
+  Archive,
+  Check,
+  Plus,
+  ArrowRight,
+  ChevronRight,
+  ChevronDown,
+  Info,
+  Edit3,
+  RotateCw,
+  Box,
+  Tag,
+  Users,
+  CheckCircle2,
+  X,
+  Mail,
+  FileText,
+  Boxes,
+  Hand,
+  PanelRightClose,
+  PanelRightOpen,
+  ZoomIn,
+} from "lucide-react";
 import { useCart } from "@/components/cart/CartContext";
-import { CFG_CSS } from "./cfgStyles";
 import type { SceneView } from "./StoreScene";
 import {
+  STORE_TYPES,
   ZONES,
   ZoneDef,
-  STAGE_CONFIGS,
-  UNIT_VARIANTS,
+  StoreType,
   variantIdForHeight,
-  zoneTotal,
 } from "./config";
 
-const sora = Sora({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--f-sora" });
-const inter = Inter({ subsets: ["latin"], weight: ["400", "500"], variable: "--f-inter" });
-const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--f-mono" });
-
+// Dynamic 3D Scene Loader
 const StoreScene = dynamic(() => import("./StoreScene"), {
   ssr: false,
   loading: () => (
-    <div className="empty">
-      <div>Loading 3D engine…</div>
+    <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 gap-3">
+      <RotateCw className="w-8 h-8 animate-spin text-[#D92C32]" />
+      <span className="text-sm font-medium">Loading 3D Visualizer…</span>
     </div>
   ),
 });
 
-type Screen =
-  | "industry"
-  | "zone"
-  | "dims"
-  | "proposal"
-  | "store"
-  | "order"
-  | "done";
+const money = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
-interface StoreEntry {
-  zoneId: string;
-  len: number;
-  h: number;
-  d: number;
-  cfg: string;
-  units: { v: number }[];
-  total: number;
+interface ConfiguredZoneData {
+  length: number;
+  height: string;
+  depth: string;
+  price: number;
+  fixtures: number;
+  swapOption?: "Standard" | "Premium" | "Value";
 }
 
-const money = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
-const ft = (v: number) => {
-  if (!isFinite(v)) return "0 ft";
-  const f = Math.floor(v + 1e-9);
-  const i = Math.round((v - f) * 12);
-  return i ? `${f} ft ${i} in` : `${f} ft`;
-};
-
-const INDUSTRIES: [string, string, string][] = [
-  ["cstore", "Convenience store", "5 zones ready"],
-  ["grocery", "Grocery store", "Coming soon"],
-  ["truck", "Truck stop", "Coming soon"],
-];
-
 export default function ConfiguratorFlow() {
-  const { addBundle, openCart } = useCart();
+  const { addBundle } = useCart();
 
-  const [screen, setScreen] = useState<Screen>("industry");
-  const [industry, setIndustry] = useState<string | null>(null);
-  const [zoneId, setZoneId] = useState<string | null>(null);
-  const [len, setLen] = useState("");
-  const [h, setH] = useState<number | null>(null);
-  const [d, setD] = useState<number | null>(null);
-  const [cfg, setCfg] = useState("rec");
-  const [units, setUnits] = useState<{ v: number }[]>([]);
-  const [swap, setSwap] = useState<number | null>(null);
+  // Step state: 1 = Choose Your Store, 2 = Configure Selected Zones, 3 = Review Your Store
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  // Desktop panel visibility
+  const [panelOpen, setPanelOpen] = useState<boolean>(true);
+
+  // Step 1: Store selection & multi-zone selection
+  const [selectedStoreId, setSelectedStoreId] = useState<string>("cstore");
+  // Default to 3 zones matching mockup
+  const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([
+    "deli",
+    "front-checkout",
+    "back-counter",
+  ]);
+
+  // Step 2: Sequential configuration index
+  const [activeZoneIdx, setActiveZoneIdx] = useState<number>(0);
+
+  // Form values for the currently active zone in Step 2
+  const [formLength, setFormLength] = useState<number>(14);
+  const [formHeight, setFormHeight] = useState<string>("36″ Standard");
+  const [formDepth, setFormDepth] = useState<string>("24″ Standard");
+  const [isRangeExceeded, setIsRangeExceeded] = useState<boolean>(false);
+
+  // Stored configuration for each zone
+  const [configuredZones, setConfiguredZones] = useState<
+    Record<string, ConfiguredZoneData>
+  >({
+    gondola: {
+      length: 14,
+      height: "54″ Standard",
+      depth: "24″ Standard",
+      price: 3120,
+      fixtures: 5,
+      swapOption: "Standard",
+    },
+    deli: {
+      length: 14,
+      height: "36″ Standard",
+      depth: "24″ Standard",
+      price: 2858,
+      fixtures: 4,
+      swapOption: "Standard",
+    },
+    coffee: {
+      length: 10,
+      height: "36″ Standard",
+      depth: "24″ Standard",
+      price: 2240,
+      fixtures: 4,
+      swapOption: "Standard",
+    },
+    "front-checkout": {
+      length: 12,
+      height: "36″ Standard",
+      depth: "30″ Standard",
+      price: 2640,
+      fixtures: 4,
+      swapOption: "Standard",
+    },
+    "back-counter": {
+      length: 10,
+      height: "36″ Standard",
+      depth: "24″ Standard",
+      price: 1572,
+      fixtures: 3,
+      swapOption: "Standard",
+    },
+  });
+
+  // Step 3: Camera view and swap simulator
   const [view, setView] = useState<SceneView>("3q");
-  const [store, setStore] = useState<StoreEntry[]>([]);
-  const [err, setErr] = useState("");
+  const [activeSwapZoneId, setActiveSwapZoneId] = useState<string>("deli");
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+  const [quoteEmail, setQuoteEmail] = useState("");
+  const [quoteSent, setQuoteSent] = useState(false);
 
-  const zone: ZoneDef | null = useMemo(
-    () => ZONES.find((z) => z.id === zoneId) ?? null,
-    [zoneId]
-  );
+  // Active store object
+  const currentStore = useMemo(() => {
+    return (
+      STORE_TYPES.find((s) => s.id === selectedStoreId) ?? STORE_TYPES[0]
+    );
+  }, [selectedStoreId]);
 
-  const zoneTotalNow = zone ? zoneTotal(zone, cfg, units) : 0;
-  const storeTotal = store.reduce((a, s) => a + s.total, 0);
-  const storeUnits = store.reduce((a, s) => a + s.units.length, 0);
+  // Active zone object in Step 2
+  const currentActiveZone = useMemo(() => {
+    const currentId = selectedZoneIds[activeZoneIdx] || selectedZoneIds[0] || "deli";
+    return ZONES.find((z) => z.id === currentId) ?? ZONES[0];
+  }, [selectedZoneIds, activeZoneIdx]);
 
-  const go = (s: Screen) => {
-    setSwap(null);
-    setScreen(s);
-  };
+  // Live estimate for the zone currently being edited (Step 2)
+  const currentZoneEstimate = useMemo(() => {
+    if (!currentActiveZone) return 0;
+    const len = Number(formLength);
+    if (isNaN(len) || len <= 0) return 0;
+    return Math.round((currentActiveZone.basePrice * len) / currentActiveZone.refLen);
+  }, [currentActiveZone, formLength]);
 
-  const pickZone = (id: string) => {
-    const z = ZONES.find((x) => x.id === id)!;
-    const ex = store.find((s) => s.zoneId === id);
-    setZoneId(id);
-    setLen(ex ? String(ex.len) : "");
-    setH(ex ? ex.h : z.heights[0]);
-    setD(ex ? ex.d : z.depths[0]);
-    setCfg(ex ? ex.cfg : "rec");
-    setUnits([]);
-    setErr("");
-    setSwap(null);
-    setScreen("dims");
-  };
-
-  const submitDims = () => {
-    if (!zone) return;
-    const v = parseFloat(len);
-    if (!v || v <= 0) {
-      setErr("Enter the length of your wall in feet.");
-      return;
+  // Sync form inputs when active zone changes in Step 2
+  const loadZoneConfig = (zoneId: string) => {
+    const zDef = ZONES.find((z) => z.id === zoneId);
+    if (!zDef) return;
+    const existing = configuredZones[zoneId];
+    if (existing) {
+      setFormLength(existing.length);
+      setFormHeight(existing.height);
+      setFormDepth(existing.depth);
+      setIsRangeExceeded(existing.length < 4 || existing.length > 40);
+    } else {
+      setFormLength(zDef.refLen);
+      setFormHeight(zDef.heightOptions[0]);
+      setFormDepth(zDef.depthOptions[0]);
+      setIsRangeExceeded(false);
     }
-    if (v < zone.mod || v > 80) {
-      setErr(
-        "That's outside our standard range. Let's talk — we'll take your details and sort it out."
-      );
-      return;
-    }
-    setErr("");
-    const n = Math.floor(v / zone.mod);
-    setUnits(Array.from({ length: n }, () => ({ v: 0 })));
-    go("proposal");
   };
 
-  const addZone = () => {
-    if (!zone) return;
-    const entry: StoreEntry = {
-      zoneId: zone.id,
-      len: parseFloat(len),
-      h: h ?? zone.heights[0],
-      d: d ?? zone.depths[0],
-      cfg,
-      units: units.map((u) => ({ ...u })),
-      total: zoneTotal(zone, cfg, units),
-    };
-    setStore((prev) => {
-      const next = prev.filter((s) => s.zoneId !== zone.id).concat(entry);
-      next.sort(
-        (a, b) =>
-          ZONES.findIndex((z) => z.id === a.zoneId) -
-          ZONES.findIndex((z) => z.id === b.zoneId)
-      );
-      return next;
+  // Toggle zone in Step 1
+  const toggleZone = (id: string) => {
+    setSelectedZoneIds((prev) => {
+      if (prev.includes(id)) {
+        if (prev.length === 1) return prev; // Keep at least 1
+        return prev.filter((item) => item !== id);
+      } else {
+        return [...prev, id];
+      }
     });
-    setUnits([]);
-    go("store");
   };
 
-  const placeOrder = () => {
-    const items = store.map((e, i) => {
-      const z = ZONES.find((x) => x.id === e.zoneId)!;
-      const cfgLabel =
-        STAGE_CONFIGS.find((c) => c.id === e.cfg)?.label ?? "Recommended";
+  // Move from Step 1 to Step 2
+  const handleStartConfiguring = () => {
+    if (selectedZoneIds.length === 0) return;
+    setActiveZoneIdx(0);
+    loadZoneConfig(selectedZoneIds[0]);
+    setStep(2);
+  };
+
+  // Save current zone and advance to next zone or Step 3
+  const handleSaveAndContinue = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!currentActiveZone) return;
+
+    const len = Number(formLength);
+    if (isNaN(len) || len <= 0) return;
+
+    const ratio = len / currentActiveZone.refLen;
+    const calculatedPrice = Math.round(currentActiveZone.basePrice * ratio);
+    const calculatedFixtures = Math.max(
+      1,
+      Math.round(currentActiveZone.fixtures * ratio)
+    );
+
+    const updatedConfig: ConfiguredZoneData = {
+      length: len,
+      height: formHeight,
+      depth: formDepth,
+      price: calculatedPrice,
+      fixtures: calculatedFixtures,
+      swapOption: configuredZones[currentActiveZone.id]?.swapOption || "Standard",
+    };
+
+    setConfiguredZones((prev) => ({
+      ...prev,
+      [currentActiveZone.id]: updatedConfig,
+    }));
+
+    if (activeZoneIdx < selectedZoneIds.length - 1) {
+      const nextIdx = activeZoneIdx + 1;
+      setActiveZoneIdx(nextIdx);
+      loadZoneConfig(selectedZoneIds[nextIdx]);
+    } else {
+      setStep(3);
+    }
+  };
+
+  // Go back from Step 2
+  const handleStep2Back = () => {
+    if (activeZoneIdx > 0) {
+      const prevIdx = activeZoneIdx - 1;
+      setActiveZoneIdx(prevIdx);
+      loadZoneConfig(selectedZoneIds[prevIdx]);
+    } else {
+      setStep(1);
+    }
+  };
+
+  // Swap unit simulator in Step 3
+  const handleSwapChoice = (zoneId: string, choice: "Standard" | "Premium" | "Value") => {
+    setConfiguredZones((prev) => {
+      const zoneData = prev[zoneId];
+      if (!zoneData) return prev;
+      const zDef = ZONES.find((z) => z.id === zoneId);
+      const baseLen = zoneData.length;
+      const baseRatio = baseLen / (zDef?.refLen || 20);
+      let newPrice = Math.round((zDef?.basePrice || 3000) * baseRatio);
+
+      if (choice === "Premium") newPrice += 90 * (zoneData.fixtures || 4);
+      if (choice === "Value") newPrice -= 40 * (zoneData.fixtures || 4);
+
       return {
-        id: `cfg-${e.zoneId}-${Date.now()}-${i}`,
-        title: `${z.label} — ${e.units.length} units · ${cfgLabel} · ${e.h}in`,
-        price: Math.round(e.total),
-        image: z.cartImage,
-        quantity: 1,
+        ...prev,
+        [zoneId]: {
+          ...zoneData,
+          price: Math.max(100, newPrice),
+          swapOption: choice,
+        },
       };
     });
-    addBundle(items, { open: false });
-    go("done");
   };
 
-  const reset = () => {
-    setScreen("industry");
-    setIndustry(null);
-    setZoneId(null);
-    setLen("");
-    setH(null);
-    setD(null);
-    setCfg("rec");
-    setUnits([]);
-    setSwap(null);
-    setView("3q");
-    setStore([]);
-    setErr("");
-  };
+  // Aggregated totals
+  const totalFixtures = useMemo(() => {
+    return selectedZoneIds.reduce((sum, id) => {
+      const entry = configuredZones[id];
+      const zDef = ZONES.find((z) => z.id === id);
+      return sum + (entry ? entry.fixtures : zDef?.fixtures || 3);
+    }, 0);
+  }, [selectedZoneIds, configuredZones]);
 
-  // ── scene rows ────────────────────────────────────
-  const rows = useMemo(() => {
-    const toRow = (
-      zId: string,
-      lengthFt: number,
-      hh: number,
-      bays: number
-    ) => {
-      const z = ZONES.find((x) => x.id === zId)!;
+  const totalPrice = useMemo(() => {
+    return selectedZoneIds.reduce((sum, id) => {
+      const entry = configuredZones[id];
+      const zDef = ZONES.find((z) => z.id === id);
+      return sum + (entry ? entry.price : zDef?.basePrice || 2000);
+    }, 0);
+  }, [selectedZoneIds, configuredZones]);
+
+  // Rows for 3D visualizer
+  const sceneRows = useMemo(() => {
+    const idsToRender =
+      step === 2
+        ? selectedZoneIds.slice(0, activeZoneIdx + 1)
+        : selectedZoneIds;
+
+    return idsToRender.map((id) => {
+      const zDef = ZONES.find((z) => z.id === id) || ZONES[0];
+      const conf = configuredZones[id];
+      const lengthFt = conf ? conf.length : zDef.refLen;
+      const heightIn = conf
+        ? parseInt(conf.height) || zDef.heights[0]
+        : zDef.heights[0];
+
       return {
-        zone: z,
+        zone: zDef,
         sel: {
           lengthFt,
           finish: "natural_oak" as const,
-          variantId: variantIdForHeight(hh),
+          variantId: variantIdForHeight(heightIn),
         },
-        bays,
+        bays: conf ? conf.fixtures : zDef.fixtures,
       };
-    };
-    if (screen === "proposal" && zone && units.length) {
-      return [toRow(zone.id, parseFloat(len) || zone.defaultLenFt, h ?? zone.heights[0], units.length)];
+    });
+  }, [step, selectedZoneIds, activeZoneIdx, configuredZones]);
+
+  // Add configured store to cart
+  const handleAddToCart = () => {
+    const cartItems = selectedZoneIds.map((id, index) => {
+      const zDef = ZONES.find((z) => z.id === id)!;
+      const conf = configuredZones[id];
+      const len = conf ? conf.length : zDef.refLen;
+      const h = conf ? conf.height : zDef.heightOptions[0];
+      const price = conf ? conf.price : zDef.basePrice;
+      const fixtures = conf ? conf.fixtures : zDef.fixtures;
+
+      return {
+        id: `cfg-${currentStore.id}-${id}-${Date.now()}-${index}`,
+        title: `${zDef.label} (${currentStore.name}) — ${len}'L · ${fixtures} fixtures · ${h}`,
+        price: Math.round(price),
+        image: zDef.cartImage,
+        quantity: 1,
+      };
+    });
+
+    addBundle(cartItems, { open: true });
+  };
+
+  const getStoreIcon = (id: string, cls = "w-4 h-4") => {
+    switch (id) {
+      case "cstore":
+        return <Store className={cls} />;
+      case "grocery":
+        return <ShoppingCart className={cls} />;
+      case "truck":
+        return <Truck className={cls} />;
+      default:
+        return <Store className={cls} />;
     }
-    if (["store", "order", "done"].includes(screen)) {
-      return store.map((e) => toRow(e.zoneId, e.len, e.h, e.units.length));
+  };
+
+  const getZoneIcon = (id: string, cls = "w-5 h-5") => {
+    switch (id) {
+      case "gondola":
+        return <Layers className={cls} />;
+      case "deli":
+        return <UtensilsCrossed className={cls} />;
+      case "coffee":
+        return <Coffee className={cls} />;
+      case "front-checkout":
+        return <CreditCard className={cls} />;
+      case "back-counter":
+        return <Archive className={cls} />;
+      default:
+        return <Layers className={cls} />;
     }
-    return [];
-  }, [screen, zone, units, store, len, h]);
+  };
 
-  const emptyMsg = !industry
-    ? "Pick your store type to begin"
-    : !zoneId
-    ? "Pick a zone to begin"
-    : "Enter your wall length";
-
-  // ── step rail ─────────────────────────────────────
-  const railIdx = { industry: 0, zone: 1, dims: 2, proposal: 2, store: 3, order: 3, done: 3 }[
-    screen
-  ];
-
-  const inZone = units.length > 0 && screen === "proposal";
-  const caption =
-    screen === "proposal"
-      ? "Drag to orbit · tap a unit to swap it · nothing is dragged into place"
-      : store.length
-      ? `${store.length} zone${store.length > 1 ? "s" : ""} in your store`
-      : "Your layout builds itself as you answer";
-
-  const thumb = (z: ZoneDef, on: boolean) => {
-    const c = on ? "#2C313A" : "#C9C7C3";
-    const o = on ? "#C0813E" : "#DED9D2";
-    return (
-      <svg width="100%" height="44" viewBox="0 0 120 44">
-        {[0, 1, 2].map((i) => {
-          const x = 14 + i * 32;
-          const counter = z.kind === "counter";
-          return (
-            <g key={i}>
-              <rect
-                x={x}
-                y={counter ? 22 : 8}
-                width={24}
-                height={counter ? 12 : 26}
-                fill={c}
-                rx={1}
-              />
-              <rect x={x} y={34} width={24} height={5} fill={o} />
-            </g>
-          );
-        })}
-      </svg>
-    );
+  const stepTitles: Record<number, { title: string; sub: string }> = {
+    1: {
+      title: "Choose Your Store",
+      sub: "Start by selecting a store type and the zones you want to include.",
+    },
+    2: {
+      title: "Configure Zones",
+      sub: "Set the dimensions and options for each zone right in your store layout.",
+    },
+    3: {
+      title: "Review Your Store",
+      sub: "Take a final look at your store, make changes, and get a quote or add to cart.",
+    },
   };
 
   return (
-    <div className={`tscfg ${sora.variable} ${inter.variable} ${mono.variable}`}>
-      <style>{CFG_CSS}</style>
+    <div className="relative w-full h-full flex flex-col lg:block overflow-hidden bg-[#faf9f7] text-gray-900 font-sans">
+      
+      {/* ════════════════════════════════════════════════════════════
+          SUB-HEADER: Breadcrumbs & Step Indicator (Matching Mockup)
+         ════════════════════════════════════════════════════════════ */}
+      <div className="shrink-0 bg-white/95 backdrop-blur-md border-b border-gray-200/80 px-4 sm:px-6 py-2.5 sm:py-3 z-20">
+        <div className="max-w-7xl mx-auto flex flex-col gap-1 sm:gap-1.5">
+          {/* Breadcrumb row */}
+          <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+            <span>PLAN</span>
+            <span className="text-gray-300">/</span>
+            <span className="text-[#D92C32]">CONFIGURE</span>
+            <span className="text-gray-300">/</span>
+            <span>OUTFIT</span>
+            <span className="text-gray-300">/</span>
+            <span>GROW</span>
+          </div>
 
-      {/* sub top bar */}
-      <div className="top">
-        <div className="brand">
-          <b>Build your store</b>
-          <span>Start your project</span>
-        </div>
-        <div className="steps">
-          {["Project", "Zone", "Size", "Review"].map((l, i) => (
-            <div
-              key={l}
-              className={`pill ${i === railIdx ? "on" : ""} ${
-                i < railIdx ? "done" : ""
-              }`}
-            >
-              <i>{i < railIdx ? "✓" : i + 1}</i>
-              {l}
+          {/* Title and Stepper Circles row */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-black text-gray-950 tracking-tight leading-tight truncate">
+                {stepTitles[step].title}
+              </h1>
+              <p className="text-[11px] sm:text-xs text-gray-500 truncate leading-snug mt-0.5">
+                {stepTitles[step].sub}
+              </p>
             </div>
-          ))}
+
+            {/* Stepper circles: (1) (2) (3) with green checks when done */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {([1, 2, 3] as const).map((n) => {
+                const isCurrent = step === n;
+                const isPassed = step > n;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => {
+                      if (isPassed || (n === 2 && selectedZoneIds.length > 0)) {
+                        setStep(n);
+                      }
+                    }}
+                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                      isCurrent
+                        ? "bg-[#D92C32] text-white shadow-sm"
+                        : isPassed
+                        ? "bg-emerald-600 text-white cursor-pointer"
+                        : "bg-gray-200 text-gray-600 cursor-default"
+                    }`}
+                  >
+                    {isPassed ? (
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    ) : (
+                      n
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="shell">
-        <div className="stage">
-          {/* canvas */}
-          <div className="canvas">
-            <div className="float tl">
-              {(["front", "3q", "top"] as SceneView[]).map((v) => (
+      {/* ════════════════════════════════════════════════════════════
+          3D VIEWPORT CONTAINER
+          - On mobile (<lg): Sits in upper section of flex-col
+          - On desktop (lg+): Full-screen background stage
+         ════════════════════════════════════════════════════════════ */}
+      <div className="relative w-full h-[36vh] sm:h-[40vh] lg:absolute lg:inset-0 lg:top-0 lg:h-full shrink-0 overflow-hidden bg-[#f4f3f0]">
+        <StoreScene rows={sceneRows} view={step === 3 ? view : "3q"} />
+
+        {/* Step 1 Overlay: "3D View" badge top-right */}
+        {step === 1 && (
+          <div className="absolute top-3 right-3 z-10">
+            <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-gray-800 border border-gray-200 shadow-sm pointer-events-none">
+              <Boxes className="w-3.5 h-3.5 text-[#D92C32]" />
+              <span>3D View</span>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2 Overlay: "Tap & drag to rotate" badge bottom-center */}
+        {step === 2 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+            <div className="flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-gray-800 border border-gray-200 shadow-md pointer-events-none">
+              <span className="text-sm leading-none">👆</span>
+              <span>Tap &amp; drag to rotate</span>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3 Overlay: Camera views pills bottom-center */}
+        {step === 3 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+            <div className="flex items-center gap-1 p-1 rounded-full bg-white/95 backdrop-blur-md border border-gray-200 shadow-md">
+              {(["front", "3q", "top"] as SceneView[]).map((v) => {
+                const isSel = view === v;
+                const label = v === "front" ? "Front" : v === "3q" ? "Angle" : "Top";
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setView(v)}
+                    className={`px-3.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      isSel
+                        ? "bg-[#D92C32] text-white shadow-sm"
+                        : "text-gray-700 hover:text-gray-950 font-medium"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════
+          BOTTOM SHEET / INTERACTIVE PANEL
+          - On mobile (<lg): Rounded bottom sheet occupying lower screen
+          - On desktop (lg+): Floating glass drawer on right side
+         ════════════════════════════════════════════════════════════ */}
+      <div
+        className={`relative z-20 flex-1 flex flex-col bg-white rounded-t-[28px] sm:rounded-t-[32px] lg:rounded-2xl lg:absolute lg:top-24 lg:bottom-6 lg:right-6 lg:w-[410px] lg:max-h-[calc(100vh-130px)] shadow-[0_-8px_32px_rgba(0,0,0,0.09)] lg:shadow-2xl border border-gray-200/80 overflow-hidden transition-all duration-300 ${
+          panelOpen
+            ? "translate-y-0 opacity-100"
+            : "translate-y-8 opacity-0 pointer-events-none"
+        }`}
+      >
+        {/* Grab Handle for Mobile */}
+        <div className="lg:hidden w-12 h-1 bg-gray-300 rounded-full mx-auto mt-2.5 mb-1.5 shrink-0 cursor-pointer" />
+
+        {/* ── STEP 1: CHOOSE YOUR STORE ── */}
+        {step === 1 && (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-2 space-y-4">
+              {/* 1 Store Type */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-5 rounded-full bg-[#D92C32] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                    1
+                  </span>
+                  <h2 className="text-xs font-bold text-gray-900">
+                    Store Type
+                  </h2>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {STORE_TYPES.map((st) => {
+                    const isSelected = selectedStoreId === st.id;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => setSelectedStoreId(st.id)}
+                        className={`py-2.5 px-2 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-[#D92C32] text-white border-transparent shadow-sm"
+                            : "bg-white border-gray-200 text-gray-800 hover:border-gray-300"
+                        }`}
+                      >
+                        {getStoreIcon(st.id, "w-3.5 h-3.5")}
+                        <span className="truncate">{st.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2 Select Zones */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-5 h-5 rounded-full bg-[#D92C32] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                    2
+                  </span>
+                  <h2 className="text-xs font-bold text-gray-900">
+                    Select Zones{" "}
+                    <span className="text-gray-500 font-normal">
+                      ({selectedZoneIds.length} selected)
+                    </span>
+                  </h2>
+                </div>
+
+                <div className="space-y-2">
+                  {ZONES.map((zone) => {
+                    const isSelected = selectedZoneIds.includes(zone.id);
+                    return (
+                      <div
+                        key={zone.id}
+                        onClick={() => toggleZone(zone.id)}
+                        className={`w-full p-2 rounded-xl border flex items-center gap-3 cursor-pointer transition-all select-none ${
+                          isSelected
+                            ? "border-gray-200 bg-white"
+                            : "border-gray-100 bg-gray-50/50 hover:bg-gray-50"
+                        }`}
+                      >
+                        {/* Thumbnail Image */}
+                        <img
+                          src={zone.cartImage}
+                          alt={zone.label}
+                          className="w-12 h-12 rounded-lg object-cover bg-gray-100 border border-gray-200/80 p-0.5 shrink-0"
+                        />
+
+                        {/* Title & Description */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-xs sm:text-sm font-bold text-gray-950 truncate leading-tight">
+                            {zone.label}
+                          </h3>
+                          <p className="text-[10.5px] text-gray-500 truncate leading-tight mt-0.5">
+                            {zone.tagline}
+                          </p>
+                        </div>
+
+                        {/* Red Checkbox on the right */}
+                        <div
+                          className={`w-5 h-5 rounded-md flex items-center justify-center transition-all shrink-0 ${
+                            isSelected
+                              ? "bg-[#D92C32] text-white"
+                              : "border-2 border-gray-300 bg-white"
+                          }`}
+                        >
+                          {isSelected && (
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Bottom CTA */}
+            <div className="p-4 border-t border-gray-100 bg-white shrink-0">
+              <button
+                type="button"
+                onClick={handleStartConfiguring}
+                disabled={selectedZoneIds.length === 0}
+                className="w-full py-3 rounded-xl bg-[#D92C32] hover:bg-[#b5252a] active:scale-[0.99] text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-40 cursor-pointer"
+              >
+                <span>
+                  Configure {selectedZoneIds.length} Zone
+                  {selectedZoneIds.length !== 1 ? "s" : ""}
+                </span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <p className="text-[11px] text-gray-400 text-center mt-2 font-medium">
+                You can add or remove zones later.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 2: CONFIGURE ZONES ── */}
+        {step === 2 && (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Header row: (2) Configure Zones, badge, close button */}
+            <div className="flex items-center justify-between px-4 sm:px-5 py-2.5 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-[#D92C32] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                  2
+                </span>
+                <h2 className="text-xs sm:text-sm font-bold text-gray-950">
+                  Configure Zones
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-[#D92C32] bg-red-50 px-2.5 py-0.5 rounded-full">
+                  {activeZoneIdx + 1} / {selectedZoneIds.length}
+                </span>
                 <button
-                  key={v}
-                  className={`tool ${view === v ? "on" : ""}`}
-                  onClick={() => setView(v)}
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="p-1 text-gray-400 hover:text-gray-700 cursor-pointer"
                 >
-                  {v === "front" ? "Front" : v === "3q" ? "Angle" : "Top"}
+                  <X className="w-4 h-4" />
                 </button>
-              ))}
-            </div>
-            <div className="float tr">
-
-            </div>
-
-            {rows.length ? (
-              <div className="scene">
-                <StoreScene
-                  rows={rows}
-                  view={view}
-                  onUnitClick={
-                    screen === "proposal" ? (i) => setSwap(i) : undefined
-                  }
-                  activeUnit={swap}
-                />
               </div>
-            ) : (
-              <div className="empty">
-                <div>{emptyMsg}</div>
+            </div>
+
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-3.5">
+              {/* Active Zone Card */}
+              <div className="flex items-center gap-3 p-2.5 rounded-xl bg-red-50/40 border border-red-100">
+                <div className="w-10 h-10 rounded-full bg-red-100 text-[#D92C32] flex items-center justify-center shrink-0">
+                  {getZoneIcon(currentActiveZone.id, "w-5 h-5")}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-gray-950 truncate leading-tight">
+                    {currentActiveZone.label}
+                  </h3>
+                  <p className="text-[10.5px] text-gray-500 truncate leading-tight mt-0.5">
+                    {currentActiveZone.tagline}
+                  </p>
+                </div>
               </div>
-            )}
-            <div className="caption">{caption}</div>
-          </div>
 
-          {/* dark bar */}
-          <div className="bar">
-            <div>
-              <span className="k">
-                {inZone ? "Units in this zone" : "Zones in your store"}
-              </span>
-              <span className="v">{inZone ? units.length : store.length}</span>
-            </div>
-            <div>
-              <span className="k">{inZone ? "Your wall" : "Units placed"}</span>
-              <span className="v">
-                {inZone ? ft(parseFloat(len)) : storeUnits}
-              </span>
-            </div>
-            <div className="right">
-              <span className="k">Estimated total</span>
-              <span className="v">
-                {money(inZone ? zoneTotalNow : storeTotal)}
-              </span>
-            </div>
-          </div>
-
-          {/* zone strip */}
-          <div className="strip">
-            <h3>Your store — Contemporary</h3>
-            <p>
-              Grey with Sonoma oak. Add the zones you need — you can stop any
-              time.
-            </p>
-            <div className="cards">
-              {!industry ? (
-                <p style={{ fontSize: 12, color: "var(--ink3)", margin: 0 }}>
-                  Pick your store type first.
-                </p>
-              ) : (
-                ZONES.map((z) => {
-                  const e = store.find((s) => s.zoneId === z.id);
-                  const cur = zoneId === z.id && screen !== "store";
+              {/* Horizontal Zone Navigation Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {selectedZoneIds.map((id, idx) => {
+                  const z = ZONES.find((item) => item.id === id);
+                  const isCurrent = idx === activeZoneIdx;
+                  const isCompleted = idx < activeZoneIdx || !!configuredZones[id];
                   return (
                     <button
-                      key={z.id}
-                      className={`zcard ${e ? "done" : ""} ${cur ? "cur" : ""}`}
-                      onClick={() => pickZone(z.id)}
-                    >
-                      <div className="th">{thumb(z, !!e)}</div>
-                      <b>{z.label}</b>
-                      {e ? (
-                        <small>
-                          {ft(e.len)} · {money(e.total)}
-                        </small>
-                      ) : (
-                        <span className="go">add →</span>
-                      )}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* panel */}
-        <div className="panel">
-          {screen === "industry" && (
-            <>
-              <h2>What kind of store?</h2>
-              <p className="hint">
-                This decides which zones we show you next.
-              </p>
-              {INDUSTRIES.map(([id, l, s]) => (
-                <button
-                  key={id}
-                  className={`opt ${industry === id ? "sel" : ""}`}
-                  disabled={id !== "cstore"}
-                  onClick={() => setIndustry(id)}
-                >
-                  <div>
-                    <b>{l}</b>
-                    <small>{s}</small>
-                  </div>
-                  <div className="dot" />
-                </button>
-              ))}
-              <button
-                className="btn"
-                style={{ marginTop: 6 }}
-                disabled={!industry}
-                onClick={() => go("zone")}
-              >
-                Continue
-              </button>
-            </>
-          )}
-
-          {screen === "zone" && (
-            <>
-              <button className="back" onClick={() => go("industry")}>
-                ← Store type
-              </button>
-              <h2>Which zone?</h2>
-              <p className="hint">
-                Do one at a time. You can add the rest after.
-              </p>
-              {ZONES.map((z) => (
-                <button
-                  key={z.id}
-                  className="opt"
-                  onClick={() => pickZone(z.id)}
-                >
-                  <div>
-                    <b>{z.label}</b>
-                    <small>
-                      {store.some((s) => s.zoneId === z.id)
-                        ? "In your store — reconfigure"
-                        : z.desc}
-                    </small>
-                  </div>
-                  <div className="dot" />
-                </button>
-              ))}
-              {store.length > 0 && (
-                <button
-                  className="btn ghost"
-                  style={{ marginTop: 6 }}
-                  onClick={() => go("store")}
-                >
-                  Review my store ({store.length})
-                </button>
-              )}
-            </>
-          )}
-
-          {screen === "dims" && zone && (
-            <>
-              <button className="back" onClick={() => go("zone")}>
-                ← Zones
-              </button>
-              <h2>{zone.label}</h2>
-              <p className="hint">
-                Measure the wall this zone runs along. We&apos;ll work out the
-                rest.
-              </p>
-              <div className="fld">
-                <label>Length of your wall</label>
-                <div className="box key">
-                  <input
-                    inputMode="decimal"
-                    placeholder="20"
-                    value={len}
-                    onChange={(e) => setLen(e.target.value)}
-                  />
-                  <span className="unit">ft</span>
-                </div>
-              </div>
-              <div className={`err ${err ? "show" : ""}`}>{err}</div>
-              <div className="pair">
-                <div className="fld">
-                  <label>Height</label>
-                  <select
-                    value={h ?? zone.heights[0]}
-                    onChange={(e) => setH(parseInt(e.target.value))}
-                  >
-                    {zone.heights.map((v) => (
-                      <option key={v} value={v}>
-                        {v} in
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="fld">
-                  <label>Depth</label>
-                  <select
-                    value={d ?? zone.depths[0]}
-                    onChange={(e) => setD(parseInt(e.target.value))}
-                  >
-                    {zone.depths.map((v) => (
-                      <option key={v} value={v}>
-                        {v} in
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <p className="hint" style={{ margin: "2px 0 12px" }}>
-                Already set to our standard — change them only if your space
-                needs it.
-              </p>
-              <button className="btn" onClick={submitDims}>
-                Show me what I need
-              </button>
-            </>
-          )}
-
-          {screen === "proposal" && zone && swap !== null && (
-            <>
-              <button className="back" onClick={() => setSwap(null)}>
-                ← Back
-              </button>
-              <h2>
-                Unit {swap + 1} of {units.length}
-              </h2>
-              <p className="hint">
-                Swap it for another standard in this zone. It stays where it is.
-              </p>
-              {UNIT_VARIANTS.map((v, i) => (
-                <button
-                  key={v.label}
-                  className={`opt ${units[swap]?.v === i ? "sel" : ""}`}
-                  onClick={() =>
-                    setUnits((u) =>
-                      u.map((x, j) => (j === swap ? { v: i } : x))
-                    )
-                  }
-                >
-                  <div>
-                    <b>{v.label}</b>
-                    <small>
-                      {v.delta === 0
-                        ? "Included"
-                        : (v.delta > 0 ? "+" : "−") +
-                          money(Math.abs((v.delta * zone.unitPrice) / 1600))}
-                    </small>
-                  </div>
-                  <div className="dot" />
-                </button>
-              ))}
-              <button
-                className="btn"
-                style={{ marginTop: 6 }}
-                onClick={() => setSwap(null)}
-              >
-                Done
-              </button>
-            </>
-          )}
-
-          {screen === "proposal" && zone && swap === null && (
-            <>
-              <button className="back" onClick={() => go("dims")}>
-                ← Change size
-              </button>
-              <h2>{zone.label}</h2>
-              <p className="hint">
-                {units.length} units fill {ft(units.length * zone.mod)} of your{" "}
-                {ft(parseFloat(len))} wall. Height {h} in, depth {d} in.
-              </p>
-              <div className="cfgs">
-                {STAGE_CONFIGS.map((c) => {
-                  const rec = zone.unitPrice * units.length;
-                  const delta = zone.unitPrice * c.mult * units.length - rec;
-                  return (
-                    <button
-                      key={c.id}
-                      className={`cfg ${cfg === c.id ? "sel" : ""}`}
+                      key={id}
+                      type="button"
                       onClick={() => {
-                        setCfg(c.id);
-                        setSwap(null);
+                        setActiveZoneIdx(idx);
+                        loadZoneConfig(id);
                       }}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
+                        isCurrent
+                          ? "bg-[#D92C32] text-white shadow-sm"
+                          : isCompleted
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
                     >
-                      <b>{c.label}</b>
-                      <small>
-                        {c.id === "rec"
-                          ? money(rec)
-                          : (delta > 0 ? "+" : "−") + money(Math.abs(delta))}
-                      </small>
+                      <Check className="w-3 h-3 stroke-[2.5]" />
+                      <span>{z?.label}</span>
                     </button>
                   );
                 })}
               </div>
-              <p className="hint" style={{ marginBottom: 10 }}>
-                {STAGE_CONFIGS.find((c) => c.id === cfg)?.note} Tap any unit in
-                the view to swap it.
-              </p>
-              <div className="chips">
-                {units.map((u, i) => (
-                  <button
-                    key={i}
-                    className={`chip ${swap === i ? "sel" : ""}`}
-                    onClick={() => setSwap(i)}
-                  >
-                    Unit {i + 1}
-                    {u.v ? ` · ${UNIT_VARIANTS[u.v].label}` : ""}
-                  </button>
-                ))}
-              </div>
-              <button className="btn" onClick={addZone}>
-                Add to my store
-              </button>
-              <button
-                className="btn link"
-                onClick={() =>
-                  alert(
-                    "We'll take your details and have someone come back to you."
-                  )
-                }
-              >
-                Need something different?
-              </button>
-            </>
-          )}
 
-          {screen === "store" && (
-            <>
-              <h2>Your store</h2>
-              <p className="hint">
-                Everything in one design language. Our team confirms the final
-                price with you.
-              </p>
-              {ZONES.map((z) => {
-                const e = store.find((s) => s.zoneId === z.id);
-                return e ? (
-                  <div className="row" key={z.id}>
-                    <span>
-                      <span className="check">✓</span>
-                      {z.label}
-                      <button
-                        className="edit"
-                        onClick={() => pickZone(z.id)}
+              {/* Form Inputs */}
+              <form onSubmit={handleSaveAndContinue} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 mb-1">
+                    Length (ft)
+                  </label>
+                  <input
+                    type="number"
+                    min={4}
+                    max={60}
+                    value={formLength}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setFormLength(val);
+                      setIsRangeExceeded(val < 4 || val > 40);
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 font-semibold text-gray-900 text-sm outline-none focus:border-[#D92C32] focus:ring-1 focus:ring-[#D92C32] transition-all bg-white"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1">
+                      Height
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={formHeight}
+                        onChange={(e) => setFormHeight(e.target.value)}
+                        className="w-full appearance-none px-3.5 py-2.5 pr-8 rounded-xl border border-gray-300 font-medium text-gray-900 text-xs sm:text-sm outline-none focus:border-[#D92C32] bg-white transition-all"
                       >
-                        edit
-                      </button>
-                    </span>
-                    <span>{money(e.total)}</span>
+                        {currentActiveZone.heightOptions.map((h) => (
+                          <option key={h} value={h}>
+                            {h}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                   </div>
-                ) : (
-                  <div className="row" key={z.id}>
-                    <span className="mute">{z.label}</span>
-                    <button className="add" onClick={() => pickZone(z.id)}>
-                      add →
-                    </button>
-                  </div>
-                );
-              })}
-              <div className="tot">
-                <span className="mute">Store total</span>
-                <span className="v">{money(storeTotal)}</span>
-              </div>
-              <p className="note">estimated · nothing is charged now</p>
-              <button
-                className="btn"
-                style={{ marginTop: 12 }}
-                disabled={!store.length}
-                onClick={() => go("order")}
-              >
-                Place order
-              </button>
-            </>
-          )}
 
-          {screen === "order" && (
-            <>
-              <button className="back" onClick={() => go("store")}>
-                ← My store
-              </button>
-              <h2>Place your order</h2>
-              <p className="hint">
-                {store.length} zone{store.length > 1 ? "s" : ""} ·{" "}
-                {money(storeTotal)} estimated. Our team will confirm everything
-                before anything ships.
-              </p>
-              {[
-                ["Your name", "Sam Reyes"],
-                ["Business name", "Reyes Market"],
-                ["Email", "sam@reyesmarket.com"],
-                ["Phone", "(214) 555-0148"],
-                ["Store address", "1180 Harwood St, Dallas TX"],
-              ].map(([l, p]) => (
-                <div className="fld" key={l}>
-                  <label>{l}</label>
-                  <div className="box">
-                    <input placeholder={p} />
+                  <div>
+                    <label className="block text-xs font-bold text-gray-800 mb-1">
+                      Depth
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={formDepth}
+                        onChange={(e) => setFormDepth(e.target.value)}
+                        className="w-full appearance-none px-3.5 py-2.5 pr-8 rounded-xl border border-gray-300 font-medium text-gray-900 text-xs sm:text-sm outline-none focus:border-[#D92C32] bg-white transition-all"
+                      >
+                        {currentActiveZone.depthOptions.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
-              ))}
-              <button className="btn" onClick={placeOrder}>
-                Place order
-              </button>
-              <p className="note">No payment now.</p>
-            </>
-          )}
 
-          {screen === "done" && (
-            <>
-              <div style={{ textAlign: "center" }}>
-                <div className="done-ico">✓</div>
-                <h2>Order received</h2>
-                <p className="hint" style={{ margin: "6px 0 14px" }}>
-                  Our team will contact you to confirm your order, lead time and
-                  delivery. We&apos;ve emailed you a copy with your layout.
-                </p>
-              </div>
-              <div className="row">
-                <span className="mute">Order</span>
-                <span style={{ fontFamily: "var(--fm)" }}>TS-1042</span>
-              </div>
-              <div className="row">
-                <span className="mute">Zones</span>
-                <span style={{ fontFamily: "var(--fm)" }}>{store.length}</span>
-              </div>
-              <div className="row" style={{ borderBottom: "1px solid var(--line)" }}>
-                <span className="mute">Estimated total</span>
-                <span style={{ fontFamily: "var(--fm)" }}>
-                  {money(storeTotal)}
-                </span>
-              </div>
+                {isRangeExceeded && (
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 leading-tight">
+                    <b>Outside standard range (4–40 ft):</b> Custom milling available upon request.
+                  </div>
+                )}
+
+                {/* Zone Estimate Row */}
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-xs text-gray-500 font-medium">
+                    Zone estimate
+                  </span>
+                  <span className="text-base sm:text-lg font-black text-[#D92C32]">
+                    {money(currentZoneEstimate)}
+                  </span>
+                </div>
+              </form>
+            </div>
+
+            {/* Sticky Bottom Actions Bar */}
+            <div className="p-4 border-t border-gray-100 bg-white shrink-0 flex items-center gap-2.5">
               <button
-                className="btn"
-                style={{ marginTop: 14 }}
-                onClick={() => openCart()}
+                type="button"
+                onClick={handleStep2Back}
+                className="w-12 h-11 rounded-xl border border-gray-300 hover:bg-gray-50 flex items-center justify-center text-gray-700 font-bold transition-colors cursor-pointer shrink-0"
               >
-                View cart
+                ←
               </button>
-              <button className="btn link" onClick={reset}>
-                Start again
+              <button
+                type="button"
+                onClick={() => handleSaveAndContinue()}
+                className="flex-1 h-11 rounded-xl bg-[#D92C32] hover:bg-[#b5252a] active:scale-[0.99] text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span>
+                  {activeZoneIdx < selectedZoneIds.length - 1
+                    ? "Next Zone"
+                    : "Review Store"}
+                </span>
+                <ArrowRight className="w-4 h-4" />
               </button>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 3: REVIEW YOUR STORE ── */}
+        {step === 3 && (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Header: Store Summary & Edit Store button */}
+            <div className="flex items-center justify-between px-4 sm:px-5 py-2.5 border-b border-gray-100 shrink-0">
+              <h2 className="text-sm font-bold text-gray-950">
+                Store Summary
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(1);
+                }}
+                className="px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 text-[11px] font-semibold text-gray-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Edit3 className="w-3 h-3 text-[#D92C32]" />
+                <span>Edit Store</span>
+              </button>
+            </div>
+
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-3 space-y-4">
+              {/* 3 KPI Stat Cards */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-gray-50 border border-gray-100 text-center">
+                  <Users className="w-4 h-4 text-gray-500 mx-auto mb-0.5" />
+                  <span className="text-base font-black text-gray-950 block leading-tight">
+                    {selectedZoneIds.length}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-medium">Zones</span>
+                </div>
+
+                <div className="p-2 sm:p-2.5 rounded-xl bg-gray-50 border border-gray-100 text-center">
+                  <Box className="w-4 h-4 text-gray-500 mx-auto mb-0.5" />
+                  <span className="text-base font-black text-gray-950 block leading-tight">
+                    {totalFixtures}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-medium">Fixtures</span>
+                </div>
+
+                <div className="p-2 sm:p-2.5 rounded-xl bg-gray-50 border border-gray-100 text-center">
+                  <Tag className="w-4 h-4 text-gray-500 mx-auto mb-0.5" />
+                  <span className="text-sm sm:text-base font-black text-gray-950 block leading-tight">
+                    {money(totalPrice)}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-medium">Estimated Total</span>
+                </div>
+              </div>
+
+              {/* Your Zones List */}
+              <div>
+                <h3 className="text-xs font-bold text-gray-900 mb-2">
+                  Your Zones ({selectedZoneIds.length})
+                </h3>
+                <div className="space-y-2">
+                  {selectedZoneIds.map((id, index) => {
+                    const z = ZONES.find((item) => item.id === id)!;
+                    const conf = configuredZones[id];
+                    const len = conf?.length || z.refLen;
+                    const h = (conf?.height || z.heightOptions[0]).replace(" Standard", "");
+                    const d = (conf?.depth || z.depthOptions[0]).replace(" Standard", "");
+                    const price = conf?.price || z.basePrice;
+
+                    return (
+                      <div
+                        key={id}
+                        className="p-2 rounded-xl border border-gray-200 bg-white flex items-center gap-3"
+                      >
+                        {/* Thumbnail */}
+                        <img
+                          src={z.cartImage}
+                          alt={z.label}
+                          className="w-12 h-12 rounded-lg object-cover bg-gray-100 border border-gray-200/80 p-0.5 shrink-0"
+                        />
+
+                        {/* Middle info */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold text-gray-950 truncate leading-tight">
+                            {z.label}
+                          </h4>
+                          <p className="text-[11px] text-gray-500 truncate leading-tight mt-0.5">
+                            {len}&apos;L × {h}&quot;H × {d}&quot;D
+                          </p>
+                        </div>
+
+                        {/* Right: price and Edit button */}
+                        <div className="text-right shrink-0">
+                          <span className="text-xs sm:text-sm font-bold text-gray-950 block">
+                            {money(price)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveZoneIdx(index);
+                              loadZoneConfig(id);
+                              setStep(2);
+                            }}
+                            className="text-[11px] font-bold text-[#D92C32] hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Bottom Dual CTAs */}
+            <div className="p-4 border-t border-gray-100 bg-white shrink-0 space-y-2">
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setQuoteModalOpen(true)}
+                  className="py-3 rounded-xl border border-gray-300 hover:bg-gray-50 text-gray-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 text-[#D92C32]" />
+                  <span>Get a Quote</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="py-3 rounded-xl bg-[#D92C32] hover:bg-[#b5252a] active:scale-[0.99] text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>Add to Cart</span>
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-400 text-center font-normal">
+                Pricing is an estimate. Final pricing may vary based on configuration.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ════════════════════════════════════════════════════════════
+          QUOTE MODAL
+         ════════════════════════════════════════════════════════════ */}
+      {quoteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base sm:text-lg font-bold text-gray-950">
+                Request Store Quotation
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setQuoteModalOpen(false);
+                  setQuoteSent(false);
+                }}
+                className="p-1 text-gray-400 hover:text-gray-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {quoteSent ? (
+              <div className="py-6 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <Check className="w-6 h-6 stroke-[3]" />
+                </div>
+                <h4 className="text-base font-bold text-gray-950">Quotation Sent!</h4>
+                <p className="text-xs text-gray-600">
+                  We sent the proposal for your {currentStore.name} ({money(totalPrice)}) to{" "}
+                  <b>{quoteEmail}</b>. A retail fixture specialist will follow up shortly.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuoteModalOpen(false);
+                    setQuoteSent(false);
+                  }}
+                  className="mt-4 px-6 py-2 rounded-xl bg-[#D92C32] text-white text-xs font-bold cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Get an itemized specification sheet, CAD elevations, and custom pricing package for your{" "}
+                  <b>{currentStore.name}</b> ({selectedZoneIds.length} zones, {totalFixtures} fixtures, {money(totalPrice)}).
+                </p>
+                <div>
+                  <label className="block text-xs font-bold text-gray-800 mb-1">
+                    Your Business Email
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                    <input
+                      type="email"
+                      placeholder="store-owner@example.com"
+                      value={quoteEmail}
+                      onChange={(e) => setQuoteEmail(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-sm outline-none focus:border-[#D92C32]"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (quoteEmail) setQuoteSent(true);
+                  }}
+                  disabled={!quoteEmail}
+                  className="w-full py-3 rounded-xl bg-[#D92C32] hover:bg-[#b5252a] text-white font-bold text-sm transition-all disabled:opacity-40 cursor-pointer shadow-md"
+                >
+                  Send Quotation Package
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

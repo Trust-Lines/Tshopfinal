@@ -23,100 +23,35 @@ export interface SceneRow {
 
 const rowBays = (r: SceneRow) => r.bays ?? baysFor(r.zone, r.sel);
 
-function PlaceholderRow({
-  zone,
-  sel,
-  bays,
-  z,
-  onUnitClick,
-  activeUnit,
-}: {
-  zone: ZoneDef;
-  sel: ZoneSelection;
-  bays: number;
-  z: number;
-  onUnitClick?: (i: number) => void;
-  activeUnit?: number | null;
-}) {
-  const ph = zone.placeholder!;
-  const finish = FINISHES.find((f) => f.id === sel.finish) ?? FINISHES[0];
-  const span = (bays - 1) * ph.stepM;
-
-  return (
-    <group position={[0, 0, z]}>
-      {Array.from({ length: bays }).map((_, i) => {
-        const x = i * ph.stepM - span / 2;
-        const on = activeUnit === i;
-        return (
-          <group
-            key={i}
-            position={[x, 0, 0]}
-            onClick={
-              onUnitClick
-                ? (e) => {
-                    e.stopPropagation();
-                    onUnitClick(i);
-                  }
-                : undefined
-            }
-            onPointerOver={
-              onUnitClick
-                ? (e) => {
-                    e.stopPropagation();
-                    document.body.style.cursor = "pointer";
-                  }
-                : undefined
-            }
-            onPointerOut={
-              onUnitClick
-                ? () => {
-                    document.body.style.cursor = "auto";
-                  }
-                : undefined
-            }
-          >
-            <mesh castShadow receiveShadow position={[0, ph.h * 0.45, 0]}>
-              <boxGeometry args={[ph.w * 0.96, ph.h * 0.9, ph.d]} />
-              <meshStandardMaterial
-                color={finish.frame}
-                roughness={0.6}
-                metalness={0.15}
-                transparent
-                opacity={0.6}
-              />
-            </mesh>
-            <mesh castShadow receiveShadow position={[0, ph.h * 0.92, 0]}>
-              <boxGeometry args={[ph.w, ph.h * 0.08, ph.d * 1.08]} />
-              <meshStandardMaterial color={finish.wood} roughness={0.7} />
-            </mesh>
-            {on && (
-              <mesh position={[0, ph.h * 0.5, 0]}>
-                <boxGeometry args={[ph.w * 1.05, ph.h * 1.02, ph.d * 1.14]} />
-                <meshBasicMaterial color="#B5352E" wireframe />
-              </mesh>
-            )}
-          </group>
-        );
-      })}
-      <Html position={[0, ph.h + 0.95, 0]} center distanceFactor={9}>
-        <div
-          style={{
-            whiteSpace: "nowrap",
-            fontSize: 11,
-            fontWeight: 600,
-            color: "#17181A",
-            background: "rgba(255,255,255,.92)",
-            border: "1px solid #E5E3E0",
-            borderRadius: 6,
-            padding: "3px 9px",
-          }}
-        >
-          {zone.label} · model soon
-        </div>
-      </Html>
-    </group>
-  );
-}
+const getZoneModelInfo = (r: SceneRow) => {
+  if (r.zone.id === "gondola") {
+    const v =
+      GONDOLA_VARIANTS.find((x) => x.id === r.sel.variantId) ??
+      GONDOLA_VARIANTS[0];
+    return {
+      file: v.file,
+      rotateY: v.rotateY,
+      stepM: v.stepM,
+    };
+  }
+  if (r.zone.modelFile) {
+    return {
+      file: r.zone.modelFile,
+      rotateY: r.zone.rotateY ?? false,
+      stepM: r.zone.stepM ?? 1.0,
+    };
+  }
+  if (r.zone.id === "deli" || r.zone.id === "front-checkout") {
+    return { file: "/models/zone-2.glb", rotateY: false, stepM: 1.0 };
+  }
+  if (r.zone.id === "coffee") {
+    return { file: "/models/zone-4.glb", rotateY: true, stepM: 2.49 };
+  }
+  if (r.zone.id === "back-counter") {
+    return { file: "/models/zone-3.glb", rotateY: false, stepM: 1.0 };
+  }
+  return { file: "/models/zone-1.glb", rotateY: false, stepM: 1.0 };
+};
 
 function StoreContent({
   rows,
@@ -127,7 +62,7 @@ function StoreContent({
   onUnitClick?: (i: number) => void;
   activeUnit?: number | null;
 }) {
-  const gap = 3.1;
+  const gap = 2.4;
   const laidOut = useMemo(() => {
     const startZ = -((rows.length - 1) * gap) / 2;
     return rows.map((r, i) => ({ ...r, z: startZ + i * gap }));
@@ -137,38 +72,23 @@ function StoreContent({
     .map((r) => r.zone.id + r.sel.variantId + rowBays(r) + r.sel.finish)
     .join("|");
 
-  const interactive = rows.length === 1; // proposal step shows one zone
+  const interactive = !!onUnitClick;
 
   return (
     <Center key={fitKey} disableY>
       <group>
         {laidOut.map((r) => {
           const bays = rowBays(r);
-          if (r.zone.hasModel) {
-            const v =
-              GONDOLA_VARIANTS.find((x) => x.id === r.sel.variantId) ??
-              GONDOLA_VARIANTS[0];
-            return (
-              <ZoneModel
-                key={r.zone.id}
-                file={v.file}
-                finish={r.sel.finish}
-                rotateY={v.rotateY}
-                stepM={v.stepM}
-                bays={bays}
-                position={[0, 0, r.z]}
-                onUnitClick={interactive ? onUnitClick : undefined}
-                activeUnit={interactive ? activeUnit : null}
-              />
-            );
-          }
+          const modelInfo = getZoneModelInfo(r);
           return (
-            <PlaceholderRow
+            <ZoneModel
               key={r.zone.id}
-              zone={r.zone}
-              sel={r.sel}
+              file={modelInfo.file}
+              finish={r.sel.finish}
+              rotateY={modelInfo.rotateY}
+              stepM={modelInfo.stepM}
               bays={bays}
-              z={r.z}
+              position={[0, 0, r.z]}
               onUnitClick={interactive ? onUnitClick : undefined}
               activeUnit={interactive ? activeUnit : null}
             />
@@ -180,29 +100,42 @@ function StoreContent({
 }
 
 function CameraRig({
-  radius,
+  maxDim,
   view,
   dep,
 }: {
-  radius: number;
+  maxDim: number;
   view: SceneView;
   dep: string;
 }) {
   const { camera, controls } = useThree() as any;
   useEffect(() => {
-    const d = radius * 1.0 + 1.1;
-    if (view === "front") camera.position.set(0, d * 0.3, d * 1.2);
-    else if (view === "top") camera.position.set(0.001, d * 1.6, 0.001);
-    else camera.position.set(d * 0.85, d * 0.44, d * 0.95);
-    camera.near = 0.1;
-    camera.far = d * 10;
-    camera.updateProjectionMatrix();
-    if (controls) {
-      controls.target.set(0, view === "top" ? 0 : 0.9, 0);
-      controls.update();
+    // Tight, balanced framing matching reference Photo 2 — store fills ~70-75% of canvas cleanly
+    const dist = Math.max(5.6, maxDim * 1.32 + 0.4);
+    if (view === "front") {
+      camera.position.set(0, dist * 0.35, dist * 1.15);
+      if (controls) {
+        controls.target.set(0, 0.75, 0);
+        controls.update();
+      }
+    } else if (view === "top") {
+      camera.position.set(0.001, dist * 1.45, 0.001);
+      if (controls) {
+        controls.target.set(0, 0, 0);
+        controls.update();
+      }
+    } else {
+      // "3q" / Angle view matching Photo 2 — centered on the diagonal store footprint
+      camera.position.set(dist * 0.62 + 0.5, dist * 0.48, dist * 0.80 + 0.1);
+      if (controls) {
+        controls.target.set(0.5, 0.75, 0.1);
+        controls.update();
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dep, radius, view]);
+    camera.near = 0.1;
+    camera.far = 100;
+    camera.updateProjectionMatrix();
+  }, [camera, controls, dep, maxDim, view]);
   return null;
 }
 
@@ -219,35 +152,38 @@ export default function StoreScene({
   onUnitClick,
   activeUnit = null,
 }: StoreSceneProps) {
-  const radius = useMemo(() => {
-    let maxW = 4;
+  const maxDim = useMemo(() => {
+    if (!rows || rows.length === 0) return 4;
+    let maxW = 3.5;
     for (const r of rows) {
-      const stepM = r.zone.hasModel
-        ? GONDOLA_VARIANTS.find((v) => v.id === r.sel.variantId)?.stepM ?? 1
-        : r.zone.placeholder!.stepM;
-      maxW = Math.max(maxW, rowBays(r) * stepM);
+      const info = getZoneModelInfo(r);
+      maxW = Math.max(maxW, rowBays(r) * info.stepM);
     }
-    const depth = Math.max(3, (rows.length - 1) * 3.1 + 2);
-    return Math.max(maxW, depth) * 0.44 + 1.3;
+    const depth = Math.max(2.4, (rows.length - 1) * 2.4 + 1.6);
+    return Math.max(maxW, depth);
   }, [rows]);
 
-  const dep = rows
+  const dep = (rows || [])
     .map((r) => r.zone.id + r.sel.variantId + rowBays(r))
     .join("|");
+
+  if (!rows || rows.length === 0) {
+    return null;
+  }
 
   return (
     <Canvas
       shadows
       dpr={[1, 1.75]}
-      camera={{ position: [10, 8, 14], fov: 42 }}
+      camera={{ position: [5.6, 4.2, 7.2], fov: 38 }}
       gl={{ antialias: true, preserveDrawingBuffer: true }}
     >
-      <CameraRig radius={radius} view={view} dep={dep} />
-      <color attach="background" args={["#f7f6f4"]} />
-      <hemisphereLight args={["#ffffff", "#bbb6ad", 1.15]} />
+      <CameraRig maxDim={maxDim} view={view} dep={dep} />
+      <color attach="background" args={["#faf9f7"]} />
+      <hemisphereLight args={["#ffffff", "#bbb6ad", 1.2]} />
       <directionalLight
         position={[6, 10, 6]}
-        intensity={2.0}
+        intensity={2.1}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-14}
@@ -273,28 +209,26 @@ export default function StoreScene({
         />
       </Suspense>
 
+      {/* Architectural grid floor matching reference */}
+      <gridHelper args={[60, 60, "#d4d4d4", "#e8e8e8"]} position={[0, -0.01, 0]} />
+
       <ContactShadows
         position={[0, 0, 0]}
-        scale={20}
+        scale={28}
         far={7}
-        opacity={0.32}
+        opacity={0.25}
         blur={2.4}
         resolution={1024}
-      />
-      <gridHelper
-        args={[26, 26, "#d9d6d1", "#e9e7e3"]}
-        position={[0, -0.001, 0]}
       />
 
       <OrbitControls
         makeDefault
         enablePan={false}
-        minDistance={3}
-        maxDistance={90}
-        maxPolarAngle={Math.PI / 2.1}
-        autoRotate={view === "3q"}
-        autoRotateSpeed={0.35}
-        target={[0, 1, 0]}
+        minDistance={2.0}
+        maxDistance={50}
+        maxPolarAngle={Math.PI / 2.15}
+        autoRotate={false}
+        target={[0.5, 0.75, 0.1]}
       />
     </Canvas>
   );

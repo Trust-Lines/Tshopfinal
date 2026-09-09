@@ -125,33 +125,47 @@ export default function ZoneModel({
             onClick={
               onUnitClick
                 ? (e) => {
-                    e.stopPropagation();
-                    onUnitClick(i);
-                  }
+                  e.stopPropagation();
+                  onUnitClick(i);
+                }
                 : undefined
             }
             onPointerOver={
               onUnitClick
                 ? (e) => {
-                    e.stopPropagation();
-                    document.body.style.cursor = "pointer";
-                  }
+                  e.stopPropagation();
+                  document.body.style.cursor = "pointer";
+                }
                 : undefined
             }
             onPointerOut={
               onUnitClick
                 ? () => {
-                    document.body.style.cursor = "auto";
-                  }
+                  document.body.style.cursor = "auto";
+                }
                 : undefined
             }
           >
             <Clone object={base.wrapper} />
             {activeUnit === i && (
-              <mesh position={[0, s.y / 2, 0]}>
-                <boxGeometry args={[Math.max(s.x, stepM) * 1.04, s.y * 1.03, s.z * 1.1]} />
-                <meshBasicMaterial color="#B5352E" wireframe />
-              </mesh>
+              <group position={[0, s.y / 2, 0]}>
+                {/* Red wireframe selection box matching reference */}
+                <mesh>
+                  <boxGeometry
+                    args={[
+                      Math.max(s.x, stepM) * 1.08,
+                      s.y * 1.06,
+                      s.z * 1.16,
+                    ]}
+                  />
+                  <meshBasicMaterial color="#D92C32" wireframe />
+                </mesh>
+                {/* Top pyramid pointer */}
+                <mesh position={[0, s.y * 0.6, 0]}>
+                  <coneGeometry args={[0.18, 0.28, 4]} />
+                  <meshBasicMaterial color="#D92C32" wireframe />
+                </mesh>
+              </group>
             )}
           </group>
         );
