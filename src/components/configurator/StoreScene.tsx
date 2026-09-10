@@ -19,11 +19,21 @@ export interface SceneRow {
   sel: ZoneSelection;
   /** explicit unit count — overrides the derived bay count */
   bays?: number;
+  bayFiles?: Record<number, string>;
+  modelFile?: string;
+  stepM?: number;
 }
 
 const rowBays = (r: SceneRow) => r.bays ?? baysFor(r.zone, r.sel);
 
 const getZoneModelInfo = (r: SceneRow) => {
+  if (r.modelFile) {
+    return {
+      file: r.modelFile,
+      rotateY: r.zone.rotateY ?? false,
+      stepM: r.stepM ?? r.zone.stepM ?? 1.0,
+    };
+  }
   if (r.zone.id === "gondola") {
     const v =
       GONDOLA_VARIANTS.find((x) => x.id === r.sel.variantId) ??
@@ -41,14 +51,17 @@ const getZoneModelInfo = (r: SceneRow) => {
       stepM: r.zone.stepM ?? 1.0,
     };
   }
-  if (r.zone.id === "deli" || r.zone.id === "front-checkout") {
+  if (r.zone.id === "front-checkout") {
+    return { file: "/models/cashier/sc-sliding-34.glb", rotateY: false, stepM: 0.91 };
+  }
+  if (r.zone.id === "back-counter") {
+    return { file: "/models/cashier/bc-36.glb", rotateY: false, stepM: 0.97 };
+  }
+  if (r.zone.id === "deli") {
     return { file: "/models/zone-2.glb", rotateY: false, stepM: 1.0 };
   }
   if (r.zone.id === "coffee") {
     return { file: "/models/zone-4.glb", rotateY: true, stepM: 2.49 };
-  }
-  if (r.zone.id === "back-counter") {
-    return { file: "/models/zone-3.glb", rotateY: false, stepM: 1.0 };
   }
   return { file: "/models/zone-1.glb", rotateY: false, stepM: 1.0 };
 };
@@ -56,23 +69,29 @@ const getZoneModelInfo = (r: SceneRow) => {
 function StoreContent({
   rows,
   onUnitClick,
-  activeUnit,
+  selectedUnit,
 }: {
   rows: SceneRow[];
-  onUnitClick?: (i: number) => void;
-  activeUnit?: number | null;
+  onUnitClick?: (zoneId: string, unitIndex: number) => void;
+  selectedUnit?: { zoneId: string; unitIndex: number } | null;
 }) {
-  const gap = 2.4;
+  const gap = 1.85;
   const laidOut = useMemo(() => {
     const startZ = -((rows.length - 1) * gap) / 2;
     return rows.map((r, i) => ({ ...r, z: startZ + i * gap }));
   }, [rows]);
 
   const fitKey = laidOut
-    .map((r) => r.zone.id + r.sel.variantId + rowBays(r) + r.sel.finish)
+    .map(
+      (r) =>
+        r.zone.id +
+        r.sel.variantId +
+        rowBays(r) +
+        r.sel.finish +
+        (r.modelFile || "") +
+        JSON.stringify(r.bayFiles || {})
+    )
     .join("|");
-
-  const interactive = !!onUnitClick;
 
   return (
     <Center key={fitKey} disableY>
@@ -80,6 +99,9 @@ function StoreContent({
         {laidOut.map((r) => {
           const bays = rowBays(r);
           const modelInfo = getZoneModelInfo(r);
+          const activeBay =
+            selectedUnit?.zoneId === r.zone.id ? selectedUnit.unitIndex : null;
+
           return (
             <ZoneModel
               key={r.zone.id}
@@ -89,8 +111,13 @@ function StoreContent({
               stepM={modelInfo.stepM}
               bays={bays}
               position={[0, 0, r.z]}
-              onUnitClick={interactive ? onUnitClick : undefined}
-              activeUnit={interactive ? activeUnit : null}
+              bayFiles={r.bayFiles}
+              onUnitClick={
+                onUnitClick
+                  ? (bayIdx) => onUnitClick(r.zone.id, bayIdx)
+                  : undefined
+              }
+              activeUnit={activeBay}
             />
           );
         })}
@@ -110,25 +137,25 @@ function CameraRig({
 }) {
   const { camera, controls } = useThree() as any;
   useEffect(() => {
-    // Tight, balanced framing matching reference Photo 2 — store fills ~70-75% of canvas cleanly
-    const dist = Math.max(5.6, maxDim * 1.32 + 0.4);
+    // Framing matching Recommended Direction — store fills ~70% of canvas cleanly with all rows visible
+    const dist = Math.max(5.4, maxDim * 1.05 + 0.6);
     if (view === "front") {
-      camera.position.set(0, dist * 0.35, dist * 1.15);
+      camera.position.set(0, dist * 0.35, dist * 1.05);
       if (controls) {
-        controls.target.set(0, 0.75, 0);
+        controls.target.set(0, 0.65, 0);
         controls.update();
       }
     } else if (view === "top") {
-      camera.position.set(0.001, dist * 1.45, 0.001);
+      camera.position.set(0.001, dist * 1.25, 0.001);
       if (controls) {
         controls.target.set(0, 0, 0);
         controls.update();
       }
     } else {
-      // "3q" / Angle view matching Photo 2 — centered on the diagonal store footprint
-      camera.position.set(dist * 0.62 + 0.5, dist * 0.48, dist * 0.80 + 0.1);
+      // "3q" / Angle view — heroic framing matching mockup
+      camera.position.set(dist * 0.58, dist * 0.44, dist * 0.72);
       if (controls) {
-        controls.target.set(0.5, 0.75, 0.1);
+        controls.target.set(0, 0.65, 0);
         controls.update();
       }
     }
@@ -139,27 +166,27 @@ function CameraRig({
   return null;
 }
 
-interface StoreSceneProps {
+export interface StoreSceneProps {
   rows: SceneRow[];
   view?: SceneView;
-  onUnitClick?: (i: number) => void;
-  activeUnit?: number | null;
+  onUnitClick?: (zoneId: string, unitIndex: number) => void;
+  selectedUnit?: { zoneId: string; unitIndex: number } | null;
 }
 
 export default function StoreScene({
   rows,
   view = "3q",
   onUnitClick,
-  activeUnit = null,
+  selectedUnit = null,
 }: StoreSceneProps) {
   const maxDim = useMemo(() => {
     if (!rows || rows.length === 0) return 4;
-    let maxW = 3.5;
+    let maxW = 3.0;
     for (const r of rows) {
       const info = getZoneModelInfo(r);
       maxW = Math.max(maxW, rowBays(r) * info.stepM);
     }
-    const depth = Math.max(2.4, (rows.length - 1) * 2.4 + 1.6);
+    const depth = Math.max(2.0, (rows.length - 1) * 1.85 + 1.2);
     return Math.max(maxW, depth);
   }, [rows]);
 
@@ -175,7 +202,7 @@ export default function StoreScene({
     <Canvas
       shadows
       dpr={[1, 1.75]}
-      camera={{ position: [5.6, 4.2, 7.2], fov: 38 }}
+      camera={{ position: [4.2, 3.2, 5.2], fov: 36 }}
       gl={{ antialias: true, preserveDrawingBuffer: true }}
     >
       <CameraRig maxDim={maxDim} view={view} dep={dep} />
@@ -205,30 +232,30 @@ export default function StoreScene({
         <StoreContent
           rows={rows}
           onUnitClick={onUnitClick}
-          activeUnit={activeUnit}
+          selectedUnit={selectedUnit}
         />
       </Suspense>
 
-      {/* Architectural grid floor matching reference */}
-      <gridHelper args={[60, 60, "#d4d4d4", "#e8e8e8"]} position={[0, -0.01, 0]} />
+      {/* Architectural subtle floor */}
+      <gridHelper args={[24, 24, "#e5e3df", "#f0eee9"]} position={[0, -0.01, 0]} />
 
       <ContactShadows
         position={[0, 0, 0]}
-        scale={28}
-        far={7}
-        opacity={0.25}
-        blur={2.4}
+        scale={22}
+        far={6}
+        opacity={0.28}
+        blur={2.0}
         resolution={1024}
       />
 
       <OrbitControls
         makeDefault
         enablePan={false}
-        minDistance={2.0}
-        maxDistance={50}
+        minDistance={1.5}
+        maxDistance={30}
         maxPolarAngle={Math.PI / 2.15}
         autoRotate={false}
-        target={[0.5, 0.75, 0.1]}
+        target={[0, 0.75, 0]}
       />
     </Canvas>
   );
