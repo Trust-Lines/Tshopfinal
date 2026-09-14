@@ -32,6 +32,7 @@ import {
   PanelRightOpen,
   ZoomIn,
   Sparkles,
+  DoorClosed,
 } from "lucide-react";
 import { useCart } from "@/components/cart/CartContext";
 import type { SceneView } from "./StoreScene";
@@ -83,8 +84,9 @@ export default function ConfiguratorFlow() {
 
   // Step 1: Store selection & multi-zone selection
   const [selectedStoreId, setSelectedStoreId] = useState<string>("cstore");
-  // Default to 3 zones matching mockup
+  // Default store zones including shelving and counters
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([
+    "gondola",
     "deli",
     "front-checkout",
     "back-counter",
@@ -132,8 +134,8 @@ export default function ConfiguratorFlow() {
       price: 2240,
       fixtures: 4,
       swapOption: "Standard",
-      selectedModelFile: "/models/zone-4.glb",
-      stepM: 2.49,
+      selectedModelFile: "/models/coffee/fa-40.glb",
+      stepM: 1.02,
     },
     "front-checkout": {
       length: 12,
@@ -156,6 +158,28 @@ export default function ConfiguratorFlow() {
       selectedModelId: "bc-36",
       selectedModelFile: "/models/cashier/bc-36.glb",
       stepM: 0.97,
+    },
+    countertop: {
+      length: 8,
+      height: "34″ Showcase",
+      depth: "18″ Standard",
+      price: 1420,
+      fixtures: 3,
+      swapOption: "Standard",
+      selectedModelId: "ct-showcase-34",
+      selectedModelFile: "/models/cashier/countertop-showcase-34.glb",
+      stepM: 0.86,
+    },
+    jewellery: {
+      length: 12,
+      height: "34″ Showcase",
+      depth: "24″ Standard",
+      price: 3650,
+      fixtures: 4,
+      swapOption: "Standard",
+      selectedModelId: "jw-hinged-34",
+      selectedModelFile: "/models/cashier/sc-hinged-34.glb",
+      stepM: 0.90,
     },
   });
 
@@ -567,6 +591,8 @@ export default function ConfiguratorFlow() {
         return <ShoppingCart className={cls} />;
       case "truck":
         return <Truck className={cls} />;
+      case "jewellery":
+        return <Sparkles className={cls} />;
       default:
         return <Store className={cls} />;
     }
@@ -584,6 +610,10 @@ export default function ConfiguratorFlow() {
         return <CreditCard className={cls} />;
       case "back-counter":
         return <Archive className={cls} />;
+      case "countertop":
+        return <Box className={cls} />;
+      case "jewellery":
+        return <Sparkles className={cls} />;
       default:
         return <Layers className={cls} />;
     }
@@ -720,7 +750,7 @@ export default function ConfiguratorFlow() {
         <div className="relative flex-1 lg:flex-none lg:w-[58%] xl:w-[60%] h-[34vh] sm:h-[40vh] lg:h-auto overflow-hidden bg-[#faf9f7] lg:border-r border-gray-200">
           <StoreScene
             rows={sceneRows}
-            view={step === 3 ? view : "3q"}
+            view={view}
             onUnitClick={handleUnitClick}
             selectedUnit={selectedUnit}
           />
@@ -737,7 +767,7 @@ export default function ConfiguratorFlow() {
           <div className="absolute bottom-3 left-3 z-10">
             <div className="flex items-center gap-1 p-1 rounded-full bg-white/95 backdrop-blur-md border border-gray-200 shadow-md">
               {(["front", "3q", "top"] as SceneView[]).map((v) => {
-                const isSel = (step === 3 ? view : "3q") === v;
+                const isSel = view === v;
                 const label = v === "front" ? "Front" : v === "3q" ? "Angle" : "Top";
                 return (
                   <button
@@ -832,13 +862,44 @@ export default function ConfiguratorFlow() {
                         : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/60"
                     }`}
                   >
-                    {/* 3D product thumbnail on left */}
-                    <div className="w-16 h-16 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center p-1 shrink-0 overflow-hidden">
-                      <img
-                        src={zoneObj?.cartImage || "/models/zone-1.glb"}
-                        alt={std.label}
-                        className="w-full h-full object-contain"
-                      />
+                    {/* Visual icon/badge representing the fixture type */}
+                    <div className="shrink-0">
+                      {std.id.includes("swing-door") ? (
+                        <div className="w-14 h-14 rounded-xl bg-red-50 border border-red-200 flex flex-col items-center justify-center p-1 text-[#D92C32]">
+                          <DoorClosed className="w-5 h-5 stroke-[2.2]" />
+                          <span className="text-[8px] font-bold mt-1 tracking-wider uppercase">DOOR</span>
+                        </div>
+                      ) : std.id.startsWith("bc-") ? (
+                        <div className="w-14 h-14 rounded-xl bg-blue-50 border border-blue-200 flex flex-col items-center justify-center p-1 text-blue-800">
+                          <Archive className="w-5 h-5 stroke-[2.2]" />
+                          <span className="text-[8px] font-bold mt-1 tracking-wider uppercase">CABINET</span>
+                        </div>
+                      ) : std.id.startsWith("sc-cigar") ? (
+                        <div className="w-14 h-14 rounded-xl bg-amber-50 border border-amber-200 flex flex-col items-center justify-center p-1 text-amber-800">
+                          <Tag className="w-5 h-5 stroke-[2.2]" />
+                          <span className="text-[8px] font-bold mt-1 tracking-wider uppercase">CIGAR</span>
+                        </div>
+                      ) : std.id.startsWith("sc-") ? (
+                        <div className="w-14 h-14 rounded-xl bg-gray-100 border border-gray-200 flex flex-col items-center justify-center p-1 text-gray-800">
+                          <Box className="w-5 h-5 stroke-[2.2]" />
+                          <span className="text-[8px] font-bold mt-1 tracking-wider uppercase">SHOWCASE</span>
+                        </div>
+                      ) : std.id.includes("endcap") ? (
+                        <div className="w-14 h-14 rounded-xl bg-purple-50 border border-purple-200 flex flex-col items-center justify-center p-1 text-purple-800">
+                          <Layers className="w-5 h-5 stroke-[2.2]" />
+                          <span className="text-[8px] font-bold mt-1 tracking-wider uppercase">ENDCAP</span>
+                        </div>
+                      ) : std.id.includes("coffee") || std.id.includes("brewer") || std.id.startsWith("fa-") ? (
+                        <div className="w-14 h-14 rounded-xl bg-amber-50 border border-amber-200 flex flex-col items-center justify-center p-1 text-amber-800">
+                          <Coffee className="w-5 h-5 stroke-[2.2]" />
+                          <span className="text-[8px] font-bold mt-1 tracking-wider uppercase">COFFEE</span>
+                        </div>
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center p-1 text-gray-700">
+                          <Box className="w-5 h-5 stroke-[2.2]" />
+                          <span className="text-[8px] font-bold mt-1 tracking-wider uppercase">UNIT</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Text info & price delta */}
@@ -918,21 +979,32 @@ export default function ConfiguratorFlow() {
                         Store Type
                       </h2>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {STORE_TYPES.map((st) => {
                         const isSelected = selectedStoreId === st.id;
                         return (
                           <button
                             key={st.id}
                             type="button"
-                            onClick={() => setSelectedStoreId(st.id)}
-                            className={`py-2.5 px-2 sm:px-3 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${isSelected
+                            onClick={() => {
+                              setSelectedStoreId(st.id);
+                              if (st.id === "jewellery") {
+                                setSelectedZoneIds(["jewellery", "front-checkout", "countertop"]);
+                              } else if (st.id === "grocery") {
+                                setSelectedZoneIds(["gondola", "deli", "coffee", "front-checkout"]);
+                              } else if (st.id === "truck") {
+                                setSelectedZoneIds(["front-checkout", "back-counter", "coffee", "gondola"]);
+                              } else {
+                                setSelectedZoneIds(["deli", "front-checkout", "back-counter"]);
+                              }
+                            }}
+                            className={`py-2.5 px-2 sm:px-2.5 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-bold transition-all cursor-pointer truncate ${isSelected
                                 ? "bg-[#D92C32] text-white border-transparent shadow-sm"
                                 : "bg-white border-gray-200 text-gray-800 hover:border-gray-300"
                               }`}
                           >
                             {getStoreIcon(st.id, "w-3.5 h-3.5 shrink-0")}
-                            <span>{st.name}</span>
+                            <span className="truncate">{st.name}</span>
                           </button>
                         );
                       })}

@@ -1,97 +1,123 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Inter_Tight } from "next/font/google";
-import { ArrowRight } from "lucide-react";
-
-const interTight = Inter_Tight({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
+import { X, Play } from "lucide-react";
 
 export default function HeroSection() {
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
   return (
     <section className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
 
-        {/* Hero Split Panel: Video on Left, Text on Right */}
-        <div className="overflow-hidden flex flex-col-reverse lg:flex-row items-center gap-6 lg:gap-8">
+        {/* Split Hero: Text on Left, Video Preview on Right */}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-14">
 
-          {/* LEFT — Video Panel */}
-          <div className="relative w-full lg:w-1/2 min-h-[260px] sm:min-h-[340px] lg:min-h-[480px] bg-gray-100 overflow-hidden rounded-2xl">
-            <video
-              src="/store_preview.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            />
+          {/* LEFT — Text Content */}
+          <div className="w-full lg:w-[48%] flex flex-col items-start text-left">
 
-            {/* 20 ft dimension indicator */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 w-4/5 max-w-xs">
-              <div className="bg-white/90 backdrop-blur-md border border-gray-200/80 rounded-full px-4 py-1.5 shadow-md flex items-center justify-center gap-2">
-                <span className="h-0.5 flex-1 bg-gray-400 relative">
-                  <span className="absolute left-0 -top-1 w-0.5 h-2.5 bg-gray-600" />
-                  <span className="absolute right-0 -top-1 w-0.5 h-2.5 bg-gray-600" />
-                </span>
-                <span className="text-xs font-bold text-gray-800 tracking-wider">20 ft</span>
-                <span className="h-0.5 flex-1 bg-gray-400 relative">
-                  <span className="absolute left-0 -top-1 w-0.5 h-2.5 bg-gray-600" />
-                  <span className="absolute right-0 -top-1 w-0.5 h-2.5 bg-gray-600" />
-                </span>
-              </div>
-            </div>
-          </div>
+            {/* Spacing preserved from removed Highlights badge */}
+            <div className="h-[48px] sm:h-[58px]" aria-hidden="true" />
 
-          {/* RIGHT — Text Content */}
-          <div className="w-full lg:w-1/2 p-2 sm:p-6 lg:p-10 flex flex-col justify-center bg-white">
-            <h1
-              className={`
-                ${interTight.className}
-                text-[36px]
-                sm:text-[48px]
-                md:text-[54px]
-                lg:text-[64px]
-                xl:text-[72px]
-                font-light
-                tracking-[-0.045em]
-                leading-[0.92]
-                text-gray-950
-                mb-5
-              `}
-            >
-              <span className="block sm:whitespace-nowrap">YOUR STORE</span>
-              <span className="block sm:whitespace-nowrap mt-1">YOUR SPACE</span>
-              <span className="relative inline-block sm:whitespace-nowrap mt-1">
-                <span className="glitter-text">OUR DESIGN.</span>
-              </span>
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[58px] xl:text-[66px] font-normal tracking-[-0.02em] text-[#141414] leading-[1.08] mb-5">
+              Design your<br />
+              whole store<br />
+              online in 10<br />
+              minutes.
             </h1>
 
-            <div className="mb-8 space-y-1">
-              <p className="text-base sm:text-lg font-bold text-red-600">
-                All in one place
-              </p>
-              <p className="text-sm sm:text-base text-gray-600">
-                Retail fixtures built to fit your store.
-              </p>
+            {/* Subtitle */}
+            <div className="text-sm sm:text-base text-[#525252] leading-relaxed mb-8 sm:mb-10 max-w-lg">
+              <p>Enter your dimensions, choose your look, see it priced.</p>
+              <p>No designer, no quote wait.</p>
             </div>
 
-            <div>
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+              {/* How it works (Outlined Pill) */}
+              <button
+                type="button"
+                onClick={() => setIsVideoModalOpen(true)}
+                className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full border-2 border-[#b93838] text-[#b93838] hover:bg-red-50/70 active:scale-[0.98] font-medium text-sm sm:text-base transition-all duration-150 cursor-pointer inline-flex items-center justify-center"
+              >
+                How it works
+              </button>
+
+              {/* Plan your store (Solid Red Pill) */}
               <Link
                 href="/configurator"
-                className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-sm rounded-full shadow-lg shadow-red-600/25 transition-all duration-150 group cursor-pointer"
+                className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#b93838] hover:bg-[#a53030] active:scale-[0.98] text-white font-medium text-sm sm:text-base transition-all duration-150 shadow-sm inline-flex items-center justify-center"
               >
-                <span>Build Your Store</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                Plan your store
               </Link>
+            </div>
+
+          </div>
+
+          {/* RIGHT — Clean Video Preview (No shades, no borders, no overlay shapes) */}
+          <div className="w-full lg:w-[52%] flex items-center justify-center">
+            <div className="relative w-full aspect-[4/3] sm:aspect-[16/11] lg:aspect-[16/10] overflow-hidden flex items-center justify-center">
+              <video
+                src="/store_preview.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
 
         </div>
 
       </div>
+
+      {/* Tutorial Video Modal */}
+      {isVideoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-3xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 py-3.5 bg-gray-900 border-b border-gray-800 text-white">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Play className="w-4 h-4 text-[#b93838] fill-current" />
+                <span>T Shop Store Design Tutorial</span>
+              </div>
+              <button
+                onClick={() => setIsVideoModalOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Video Player */}
+            <div className="relative aspect-video bg-black flex items-center justify-center">
+              <video
+                src="/store_preview.mp4"
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-gray-950 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
+              <span>Ready to plan your store layout in real time?</span>
+              <Link
+                href="/configurator"
+                onClick={() => setIsVideoModalOpen(false)}
+                className="px-5 py-2 rounded-full bg-[#b93838] hover:bg-[#a53030] text-white font-medium text-xs transition-colors"
+              >
+                Launch Store Configurator
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

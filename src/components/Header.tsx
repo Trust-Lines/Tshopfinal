@@ -5,7 +5,7 @@ import Link from "next/link";
 import Logo from "./Logo";
 import {
   Search,
-  ShoppingBag,
+  ShoppingCart,
   User,
   X,
   Menu,
@@ -31,32 +31,47 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-16 sm:h-[68px] flex items-center gap-4">
+        <div className="h-16 sm:h-[72px] flex items-center justify-between gap-4">
 
-          {/* ── Logo ─────────────────────────────────────────────── */}
-          <a href="#" className="flex items-center shrink-0 hover:opacity-95 transition-opacity">
-            <Logo variant="full" height={34} />
-          </a>
+          {/* ── Logo & Nav Links ─────────────────────────────────── */}
+          <div className="flex items-center gap-6 shrink-0">
+            <Link href="/" className="flex items-center hover:opacity-95 transition-opacity">
+              <Logo variant="full" height={36} showSubtitle={true} />
+            </Link>
 
-          {/* ── Desktop/Tablet Search Bar ─────────────────────────── */}
-          <div className="hidden md:flex flex-1 justify-center px-2 sm:px-4 lg:px-8">
-            <div className="relative w-full max-w-xs md:max-w-sm lg:max-w-lg">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                <Search className="w-4 h-4" />
-              </div>
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-800">
+              <a href="#fixtures" className="hover:text-[#b93838] transition-colors">
+                Industries
+              </a>
+              <a href="#fixtures" className="hover:text-[#b93838] transition-colors">
+                Products
+              </a>
+              <a href="#about" className="hover:text-[#b93838] transition-colors">
+                About us
+              </a>
+            </nav>
+          </div>
+
+          {/* ── Desktop Search Bar ───────────────────────────────── */}
+          <div className="hidden lg:flex flex-1 justify-center px-4 max-w-md">
+            <div className="relative w-full">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                placeholder="Search fixtures, categories, and more..."
-                className="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs sm:text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400 focus:bg-white transition-all"
+                placeholder="Search keywords, projects.."
+                className="w-full pl-4 pr-10 py-2 bg-white border border-gray-300 rounded-full text-xs sm:text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#b93838]/30 focus:border-[#b93838] transition-all"
               />
+              <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-gray-500">
+                <Search className="w-4 h-4" />
+              </div>
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-8 pr-2 flex items-center text-gray-400 hover:text-gray-600"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -64,16 +79,16 @@ export default function Header() {
 
               {/* Quick Search Dropdown */}
               {isSearchFocused && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 z-50">
                   <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                    <Search className="w-3.5 h-3.5 text-red-500" /> Popular Searches
+                    <Search className="w-3.5 h-3.5 text-[#b93838]" /> Popular Searches
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {quickSearches.map((term, i) => (
                       <button
                         key={i}
                         onClick={() => setSearchQuery(term)}
-                        className="text-xs bg-gray-50 hover:bg-red-50 hover:text-red-600 text-gray-600 px-3 py-1.5 rounded-lg border border-gray-100 hover:border-red-200 transition-colors"
+                        className="text-xs bg-gray-50 hover:bg-red-50 hover:text-[#b93838] text-gray-600 px-3 py-1.5 rounded-full border border-gray-100 hover:border-red-200 transition-colors"
                       >
                         {term}
                       </button>
@@ -85,37 +100,37 @@ export default function Header() {
           </div>
 
           {/* ── Right Actions ────────────────────────────────────── */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
 
             {/* Mobile Search Toggle */}
             <button
               onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-lg transition-colors"
+              className="lg:hidden p-2 text-gray-600 hover:text-[#b93838] hover:bg-gray-50 rounded-full transition-colors"
               aria-label="Search"
             >
               <Search className="w-5 h-5" />
             </button>
 
-            {/* "Fit Your Store" — hidden on small mobile, visible sm+ */}
+            {/* "Plan your store" Pill Button */}
             <Link
               href="/configurator"
-              className="hidden sm:inline-flex px-4 py-2 border border-red-500 text-red-600 hover:bg-red-600 hover:text-white font-semibold text-xs rounded-lg transition-all duration-200"
+              className="hidden sm:inline-flex px-5 py-2 bg-[#b93838] hover:bg-[#a53030] text-white font-medium text-sm rounded-full transition-all duration-150 shadow-xs"
             >
-              Fit Your Store
+              Plan your store
             </Link>
 
-            {/* User Account */}
+            {/* User Account Circular White Button */}
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="p-2 text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-lg transition-colors"
+                className="w-9 h-9 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700 hover:text-black rounded-full flex items-center justify-center transition-colors cursor-pointer shadow-xs"
                 aria-label="User Account"
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4 text-gray-700" />
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
                   <div className="px-4 py-2.5 border-b border-gray-100">
                     <p className="text-[11px] text-gray-400">Signed in as</p>
                     <p className="text-sm font-semibold text-gray-900 truncate">storemanager@tshop.com</p>
@@ -129,7 +144,7 @@ export default function Header() {
                   <div className="border-t border-gray-100 mt-1" />
                   <button
                     onClick={() => setIsUserMenuOpen(false)}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                    className="w-full text-left px-4 py-2 text-sm text-[#b93838] hover:bg-gray-50"
                   >
                     Sign Out
                   </button>
@@ -137,15 +152,15 @@ export default function Header() {
               )}
             </div>
 
-            {/* Cart */}
+            {/* Shopping Cart Circular White Button */}
             <button
               onClick={onOpenCart}
-              className="relative p-2 text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-lg transition-colors"
+              className="w-9 h-9 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700 hover:text-black rounded-full flex items-center justify-center transition-colors relative cursor-pointer shadow-xs"
               aria-label="Shopping Cart"
             >
-              <ShoppingBag className="w-5 h-5" />
+              <ShoppingCart className="w-4 h-4 text-gray-700" />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-red-600 text-white text-[10px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center shadow-sm">
+                <span className="absolute -top-1 -right-1 bg-[#b93838] text-white text-[10px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white shadow-xs">
                   {cartCount}
                 </span>
               )}
@@ -154,7 +169,7 @@ export default function Header() {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="sm:hidden p-2 text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-lg transition-colors"
+              className="sm:hidden p-2 text-gray-600 hover:text-[#b93838] hover:bg-gray-50 rounded-lg transition-colors"
               aria-label="Menu"
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

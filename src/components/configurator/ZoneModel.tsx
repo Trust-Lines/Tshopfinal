@@ -6,8 +6,7 @@ import { useGLTF, Clone } from "@react-three/drei";
 import { clone as skeletonClone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { FINISHES, FinishId } from "./config";
 
-// Structural materials of the shelving kit. Anything else (imported
-// "<auto>" props, loose merchandise) is stripped so shelves render empty.
+// Structural materials of the shelving kit.
 const KEEP = /SONOMA|ANTRASIT|Seamed|Steel|Matte|Glass|Leather|Concrete/i;
 const WOOD = /SONOMA/i;
 const FRAME = /ANTRASIT|Seamed|Steel|Matte/i;
@@ -44,8 +43,6 @@ function processScene(
       c.transparent = true;
       c.opacity = Math.min(c.opacity ?? 1, 0.35);
     } else if (isGondola) {
-      // shelf surfaces / misc → plain brushed-metal look (kills the
-      // noisy baked texture that ships on the Leather material)
       c.map = null;
       c.color = new THREE.Color("#9aa0a8");
       c.roughness = 0.55;
@@ -98,6 +95,7 @@ export interface ZoneModelProps {
   onUnitClick?: (i: number) => void;
   activeUnit?: number | null;
   bayFiles?: Record<number, string>;
+  zoneId?: string;
 }
 
 function BayUnitMesh({
@@ -192,9 +190,9 @@ export default function ZoneModel({
               <Clone object={base.wrapper} />
             )}
 
+            {/* Active Selected Unit Red Wireframe Indicator */}
             {activeUnit === i && (
               <group position={[0, s.y / 2, 0]}>
-                {/* Red wireframe selection box */}
                 <mesh>
                   <boxGeometry
                     args={[
@@ -205,7 +203,6 @@ export default function ZoneModel({
                   />
                   <meshBasicMaterial color="#D92C32" wireframe />
                 </mesh>
-                {/* Top pyramid pointer */}
                 <mesh position={[0, s.y * 0.6 + 0.15, 0]}>
                   <coneGeometry args={[0.2, 0.32, 4]} />
                   <meshBasicMaterial color="#D92C32" wireframe />

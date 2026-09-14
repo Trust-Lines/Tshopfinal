@@ -6,6 +6,7 @@ interface LogoProps {
   height?: number;
   size?: number;
   theme?: "light" | "dark";
+  showSubtitle?: boolean;
 }
 
 export function LogoIcon({ className = "w-10 h-10" }: { className?: string }) {
@@ -29,9 +30,11 @@ export default function Logo({
   className = "",
   height = 38,
   theme = "light",
+  showSubtitle = true,
 }: LogoProps) {
   const isDark = theme === "dark";
   const textColor = isDark ? "#ffffff" : "#111111";
+  const subtextColor = isDark ? "#a1a1aa" : "#52525b";
 
   if (variant === "icon") {
     return <LogoIcon className={`w-auto h-[${height}px] ${className}`} />;
@@ -83,6 +86,21 @@ export default function Logo({
         fill={textColor}
         d="M449.307,50.836c3.248,2.06,5.814,4.915,7.699,8.569s2.828,7.802,2.828,12.44-.929,8.803-2.784,12.485c-1.857,3.684-4.394,6.555-7.612,8.612-3.22,2.06-6.772,3.089-10.658,3.089-2.783,0-5.408-.565-7.873-1.696-2.466-1.131-4.511-2.509-6.134-4.133v17.052c0,1.508-.493,2.77-1.479,3.785-.987,1.014-2.233,1.522-3.741,1.522s-2.756-.494-3.741-1.479-1.479-2.262-1.479-3.828v-53.331c0-1.507.492-2.769,1.479-3.784.985-1.014,2.232-1.522,3.741-1.522s2.754.509,3.741,1.522c.985,1.016,1.479,2.277,1.479,3.784v.349c1.393-1.74,3.335-3.263,5.829-4.567,2.493-1.306,5.104-1.958,7.83-1.958,4.002,0,7.626,1.03,10.875,3.089ZM446.262,82.286c2.378-2.784,3.567-6.264,3.567-10.44s-1.175-7.641-3.523-10.396c-2.35-2.754-5.409-4.132-9.179-4.132s-6.845,1.378-9.223,4.132c-2.379,2.756-3.566,6.221-3.566,10.396s1.188,7.656,3.566,10.44c2.378,2.784,5.451,4.176,9.223,4.176,3.711,0,6.756-1.392,9.135-4.176Z"
       />
+
+      {/* Typography: Online Store subtitle */}
+      {showSubtitle && (
+        <text
+          x="180"
+          y="136"
+          fill={subtextColor}
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontSize="36"
+          fontWeight="500"
+          letterSpacing="0.4"
+        >
+          Online Store
+        </text>
+      )}
     </svg>
   );
 }
