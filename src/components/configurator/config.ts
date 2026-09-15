@@ -683,8 +683,8 @@ export const ZONE_MODEL_OPTIONS: Record<string, ModelOption[]> = {
     },
     {
       id: "fa-20t",
-      label: "Compact Tower Station 20″ (FA-20T)",
-      sub: "20″ vertical space-saver tower unit",
+      label: "Compact Tower Station 20″ (FA-20T / F20T)",
+      sub: "20″ vertical space-saver tower unit with overhead display",
       file: "/models/coffee/fa-20t.glb",
       stepM: 0.51,
       delta: 90,
@@ -851,7 +851,7 @@ export const ZONE_STANDARDS: Record<string, SlotStandard[]> = {
       id: "refrig-dropin",
       label: "Refrigerated Grab & Go Bay",
       sub: "Integrated cold display well with front glass",
-      delta: 390,
+      delta: 380,
       modelFile: "/models/zone-2.glb",
     },
     {
@@ -878,6 +878,27 @@ export const ZONE_STANDARDS: Record<string, SlotStandard[]> = {
       modelFile: "/models/coffee/fa-40.glb",
     },
     {
+      id: "fa-20t",
+      label: "Compact Tower Station 20″ (FA-20T / F20T)",
+      sub: "20″ vertical space-saver tower unit with overhead display",
+      delta: 90,
+      modelFile: "/models/coffee/fa-20t.glb",
+    },
+    {
+      id: "fa-20",
+      label: "Compact Coffee Station 20″ (FA-20)",
+      sub: "Narrow 20″ footprint beverage module",
+      delta: -150,
+      modelFile: "/models/coffee/fa-20.glb",
+    },
+    {
+      id: "tower-station",
+      label: "High-Capacity Tower Station 40″ (FA-40T)",
+      sub: "Full-height overhead canopy & storage tower",
+      delta: 280,
+      modelFile: "/models/coffee/fa-40t.glb",
+    },
+    {
       id: "condiment-bar",
       label: "Condiment & Syrup Station (FA-40-C)",
       sub: "Built-in cup/lid organizers & drop-in wells",
@@ -890,13 +911,6 @@ export const ZONE_STANDARDS: Record<string, SlotStandard[]> = {
       sub: "Quick-serve heated food & appliance station",
       delta: 190,
       modelFile: "/models/coffee/fa-40-m.glb",
-    },
-    {
-      id: "tower-station",
-      label: "High-Capacity Tower Station (FA-40T)",
-      sub: "Full-height overhead canopy & storage tower",
-      delta: 280,
-      modelFile: "/models/coffee/fa-40t.glb",
     },
   ],
   "front-checkout": [

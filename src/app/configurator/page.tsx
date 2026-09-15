@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 
 export default function ConfiguratorPage() {
   return (
-    <div className="h-[100dvh] flex flex-col bg-[#F2F1EF] font-sans overflow-hidden">
+    <div className="min-h-screen lg:h-[100dvh] flex flex-col bg-[#F2F1EF] font-sans overflow-y-auto lg:overflow-hidden">
       <Header />
-      <main className="flex-1 relative overflow-hidden bg-[#F2F1EF]">
+      <main className="flex-1 relative overflow-y-auto lg:overflow-hidden bg-[#F2F1EF]">
         <ConfiguratorFlow />
       </main>
     </div>
