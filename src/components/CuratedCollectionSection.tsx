@@ -114,8 +114,8 @@ export default function CuratedCollectionSection() {
               const popoverAlign = isRightEdge
                 ? "right-0 left-auto translate-x-0"
                 : isLeftEdge
-                ? "left-0 translate-x-0"
-                : "left-1/2 -translate-x-1/2";
+                  ? "left-0 translate-x-0"
+                  : "left-1/2 -translate-x-1/2";
 
               return (
                 <div
@@ -156,7 +156,7 @@ export default function CuratedCollectionSection() {
                           });
                           setActiveHotspot(null);
                         }}
-                        className="w-full py-1.5 bg-gray-950 hover:bg-[#D92323] text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-1.5 bg-white hover:bg-gray-50 border border-gray-200 hover:border-[#D92323] text-gray-900 hover:text-[#D92323] rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                       >
                         <ShoppingCart className="w-3.5 h-3.5" />
                         <span>Add Single Item</span>
@@ -170,25 +170,7 @@ export default function CuratedCollectionSection() {
 
           {/* Centered Add All to Cart Button */}
           <div className="mt-8 flex flex-col items-center justify-center gap-3">
-            <button
-              onClick={handleAddAll}
-              className={`px-10 py-3.5 rounded-xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer active:scale-95 ${isAddedAll
-                ? "bg-emerald-600 text-white"
-                : "bg-[#8c94a0] hover:bg-gray-800 text-white"
-                }`}
-            >
-              {isAddedAll ? (
-                <>
-                  <Check className="w-5 h-5" />
-                  <span>Added Collection to Cart!</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="w-5 h-5" />
-                  <span>Add All to Cart</span>
-                </>
-              )}
-            </button>
+
           </div>
 
         </div>

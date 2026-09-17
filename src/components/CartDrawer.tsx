@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck } from "lucide-react";
 
 export interface CartItem {
@@ -140,13 +141,14 @@ export default function CartDrawer({
                 </div>
               </div>
 
-              <button
-                onClick={() => alert("Proceeding to secure checkout...")}
-                className="w-full py-3.5 bg-[#D92323] hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+              <Link
+                href="/order"
+                onClick={onClose}
+                className="w-full py-3.5 bg-[#D92323] hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 text-center"
               >
                 <span>Proceed to Order & Delivery</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </Link>
 
               <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-500">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
