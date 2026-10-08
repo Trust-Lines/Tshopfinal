@@ -14,6 +14,7 @@ import {
   Check,
   Plus,
   ArrowRight,
+  ArrowLeft,
   ChevronRight,
   ChevronDown,
   Info,
@@ -80,13 +81,13 @@ export default function ConfiguratorFlow() {
   // Store selection
   const [selectedStoreId, setSelectedStoreId] = useState<string>("cstore");
 
-  // Zone selections for the store (Front Checkout, Back Counter, Coffee Counter, Gondola Shelving, Jewellery Showcases)
+  // Zone selections for the store (Gondola Shelving, Deli Counter, Coffee Counter, Front Checkout, Back Counter)
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([
+    "gondola",
+    "deli",
+    "coffee",
     "front-checkout",
     "back-counter",
-    "coffee",
-    "gondola",
-    "jewellery",
   ]);
 
   // 3D View mode: "single" (zone by zone) | "all" (full layout)
@@ -114,7 +115,7 @@ export default function ConfiguratorFlow() {
       depth: "12″ Standard",
       price: 3280,
       fixtures: 6,
-      selectedModelFile: "/models/zone-1.glb",
+      selectedModelFile: "/models/Contemprory/Shelving/Gondola/Gondola-35-Variations/GONDOLA-53-48.glb",
       stepM: 1.0,
     },
     deli: {
@@ -132,7 +133,7 @@ export default function ConfiguratorFlow() {
       depth: "24″ Standard",
       price: 2240,
       fixtures: 4,
-      selectedModelFile: "/models/coffee/fa-40.glb",
+      selectedModelFile: "/models/Contemprory/Food & Coffee Area/FA-40-Variations/FA-40.glb",
       stepM: 1.02,
     },
     "front-checkout": {
@@ -142,7 +143,7 @@ export default function ConfiguratorFlow() {
       price: 2640,
       fixtures: 4,
       selectedModelId: "sc-sliding-34",
-      selectedModelFile: "/models/cashier/sc-sliding-34.glb",
+      selectedModelFile: "/models/Contemprory/Cashier Area/Display Showcases/SHOWCASE-SLIDING-Variations/SC-Sliding-34.glb",
       stepM: 0.91,
     },
     "back-counter": {
@@ -152,7 +153,7 @@ export default function ConfiguratorFlow() {
       price: 1572,
       fixtures: 3,
       selectedModelId: "bc-36",
-      selectedModelFile: "/models/cashier/bc-36.glb",
+      selectedModelFile: "/models/Contemprory/Cashier Area/Back Counter/BACK-CASHIER-CABINET-Variations/BC-36.glb",
       stepM: 0.97,
     },
     countertop: {
@@ -162,7 +163,7 @@ export default function ConfiguratorFlow() {
       price: 1420,
       fixtures: 3,
       selectedModelId: "ct-showcase-34",
-      selectedModelFile: "/models/cashier/countertop-showcase-34.glb",
+      selectedModelFile: "/models/Contemprory/Cashier Area/Countertop/Countertop-Shelves-Variations/Countertop-Shelves-34.glb",
       stepM: 0.86,
     },
     jewellery: {
@@ -172,8 +173,38 @@ export default function ConfiguratorFlow() {
       price: 3650,
       fixtures: 4,
       selectedModelId: "jw-hinged-34",
-      selectedModelFile: "/models/cashier/sc-hinged-34.glb",
+      selectedModelFile: "/models/Contemprory/Cashier Area/Display Showcases/SHOWCASE-HINGED-Variations/SC-Hinged-34.glb",
       stepM: 0.90,
+    },
+    endcap: {
+      length: 8,
+      height: "53″ Standard",
+      depth: "16″ Standard",
+      price: 1760,
+      fixtures: 2,
+      selectedModelId: "endcap-std-35",
+      selectedModelFile: "/models/Contemprory/Shelving/Endcap/Endcap-35-Variations/Endcap-35.glb",
+      stepM: 0.89,
+    },
+    "wall-shelve": {
+      length: 16,
+      height: "77″ Standard",
+      depth: "16″ Standard",
+      price: 3160,
+      fixtures: 4,
+      selectedModelId: "std-wall-shelve",
+      selectedModelFile: "/models/Contemprory/Shelving/Wall/WALL-SHELVE-Variations/WALL-SHELVE-77-39.glb",
+      stepM: 1.0,
+    },
+    "bakery-showcase": {
+      length: 10,
+      height: "48″ Standard",
+      depth: "28″ Standard",
+      price: 2900,
+      fixtures: 2,
+      selectedModelId: "std-bakery-unit",
+      selectedModelFile: "/models/Contemprory/Shelving/Endcap/ENDCAP BAKERY SHOWCASES.glb",
+      stepM: 0.95,
     },
   });
 
@@ -194,11 +225,28 @@ export default function ConfiguratorFlow() {
     );
   }, [selectedStoreId]);
 
+  // Clamp activeZoneIdx if selectedZoneIds shrinks
+  useEffect(() => {
+    if (activeZoneIdx >= selectedZoneIds.length) {
+      setActiveZoneIdx(Math.max(0, selectedZoneIds.length - 1));
+    }
+  }, [selectedZoneIds.length, activeZoneIdx]);
+
   // Current active zone object in Step 2 workspace
   const currentActiveZone = useMemo(() => {
     const currentId = selectedZoneIds[activeZoneIdx] || selectedZoneIds[0] || "gondola";
     return ZONES.find((z) => z.id === currentId) ?? ZONES[0];
   }, [selectedZoneIds, activeZoneIdx]);
+
+  // Track completed/visited zones
+  const [completedZoneIds, setCompletedZoneIds] = useState<string[]>([]);
+  const [zoneSwitchNotification, setZoneSwitchNotification] = useState<string | null>(null);
+
+  const isLastZone = activeZoneIdx === selectedZoneIds.length - 1;
+  const nextZoneId = !isLastZone ? selectedZoneIds[activeZoneIdx + 1] : null;
+  const nextZoneDef = nextZoneId ? ZONES.find((z) => z.id === nextZoneId) : null;
+  const prevZoneId = activeZoneIdx > 0 ? selectedZoneIds[activeZoneIdx - 1] : null;
+  const prevZoneDef = prevZoneId ? ZONES.find((z) => z.id === prevZoneId) : null;
 
   // Sync form inputs when active zone changes
   useEffect(() => {
@@ -210,6 +258,36 @@ export default function ConfiguratorFlow() {
       setFormLength(currentActiveZone.refLen);
     }
   }, [currentActiveZone, configuredZones]);
+
+  // Navigate to Next Zone
+  const handleNextZone = () => {
+    setSelectedUnit(null);
+    if (currentActiveZone && !completedZoneIds.includes(currentActiveZone.id)) {
+      setCompletedZoneIds((prev) => [...prev, currentActiveZone.id]);
+    }
+
+    if (!isLastZone) {
+      const nextIdx = activeZoneIdx + 1;
+      setActiveZoneIdx(nextIdx);
+      const nextName = nextZoneDef?.label || "Next Zone";
+      setZoneSwitchNotification(`✓ Saved ${currentActiveZone?.label || "Zone"} — Now configuring: ${nextName}`);
+      setTimeout(() => setZoneSwitchNotification(null), 3500);
+    } else {
+      setStep(3);
+    }
+  };
+
+  // Navigate to Previous Zone
+  const handlePrevZone = () => {
+    setSelectedUnit(null);
+    if (activeZoneIdx > 0) {
+      const prevIdx = activeZoneIdx - 1;
+      setActiveZoneIdx(prevIdx);
+      const prevName = prevZoneDef?.label || "Previous Zone";
+      setZoneSwitchNotification(`Now viewing: ${prevName}`);
+      setTimeout(() => setZoneSwitchNotification(null), 3000);
+    }
+  };
 
   // Handle unit click in 3D scene
   const handleUnitClick = (zoneId: string, unitIndex: number) => {
@@ -344,13 +422,22 @@ export default function ConfiguratorFlow() {
     });
   };
 
-  // Toggle zone selection in Step 1.5 or modal
+  // Toggle zone selection in Step 1.5 or modal (Max 5 zones)
   const toggleZone = (id: string) => {
     setSelectedZoneIds((prev) => {
       if (prev.includes(id)) {
-        if (prev.length === 1) return prev; // Keep at least 1
+        if (prev.length === 1) {
+          setZoneSwitchNotification("At least 1 zone must remain selected.");
+          setTimeout(() => setZoneSwitchNotification(null), 3000);
+          return prev;
+        }
         return prev.filter((item) => item !== id);
       } else {
+        if (prev.length >= 5) {
+          setZoneSwitchNotification("You can select up to 5 zones. Please deselect a zone first to choose another.");
+          setTimeout(() => setZoneSwitchNotification(null), 3500);
+          return prev;
+        }
         return [...prev, id];
       }
     });
@@ -476,6 +563,14 @@ export default function ConfiguratorFlow() {
   return (
     <div className="relative w-full h-[calc(100dvh-64px)] min-h-0 flex flex-col bg-white text-gray-900 font-sans overflow-hidden">
       
+      {/* Floating Global Notification Toast */}
+      {zoneSwitchNotification && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-gray-950/95 backdrop-blur-md text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl border border-white/20 flex items-center gap-2.5 animate-in fade-in slide-in-from-top-3 duration-250 pointer-events-none">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{zoneSwitchNotification}</span>
+        </div>
+      )}
+      
       {/* ════════════════════════════════════════════════════════════
           STEP 1: SELECT YOUR STORE TYPE (Matches Images 1 & 2)
          ════════════════════════════════════════════════════════════ */}
@@ -499,16 +594,8 @@ export default function ConfiguratorFlow() {
                   key={st.id}
                   onClick={() => {
                     setSelectedStoreId(st.id);
-                    // Preselect default zones based on store type
-                    if (st.id === "grocery") {
-                      setSelectedZoneIds(["gondola", "deli", "coffee", "front-checkout"]);
-                    } else if (st.id === "truck") {
-                      setSelectedZoneIds(["front-checkout", "back-counter", "coffee", "gondola"]);
-                    } else if (st.id === "jewellery") {
-                      setSelectedZoneIds(["jewellery", "front-checkout", "countertop"]);
-                    } else {
-                      setSelectedZoneIds(["gondola", "deli", "coffee", "front-checkout"]);
-                    }
+                    // Preselect the 5 core retail zones
+                    setSelectedZoneIds(["gondola", "deli", "coffee", "front-checkout", "back-counter"]);
                   }}
                   className={`rounded-3xl border bg-white p-5 sm:p-6 transition-all duration-200 cursor-pointer select-none flex flex-col items-center justify-between text-center min-h-[260px] sm:min-h-[300px] ${
                     isSelected
@@ -576,18 +663,33 @@ export default function ConfiguratorFlow() {
           STEP 1.5: SELECT ALL NEEDED ZONES (Matches Image 3)
          ════════════════════════════════════════════════════════════ */}
       {step === 1.5 && (
-        <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 max-w-6xl mx-auto w-full animate-in fade-in duration-300">
-          <div className="text-center mb-8 sm:mb-10 max-w-xl">
+        <main className="flex-1 flex flex-col items-center p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full overflow-y-auto animate-in fade-in duration-300">
+          <div className="text-center mb-6 sm:mb-8 max-w-xl shrink-0">
+            {/* 5-zone status badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200 text-[#D92C32] text-xs font-bold mb-3 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-[#D92C32]" />
+              <span>{selectedZoneIds.length} of 5 zones selected</span>
+              {selectedZoneIds.length === 5 ? (
+                <span className="bg-[#D92C32] text-white text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase tracking-wide">
+                  5/5 Selected
+                </span>
+              ) : (
+                <span className="text-gray-500 font-normal">
+                  ({5 - selectedZoneIds.length} available)
+                </span>
+              )}
+            </div>
+
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight">
               Select all needed zones for your.. ({currentStore.name})
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 font-medium mt-2">
+            <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1.5">
               You can select up to 5 zones, you can edit this later.
             </p>
           </div>
 
           {/* Zone Selection Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 w-full max-w-4xl mb-8 sm:mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 w-full max-w-4xl mb-8">
             {ZONES.map((z) => {
               const isSelected = selectedZoneIds.includes(z.id);
               return (
@@ -611,12 +713,24 @@ export default function ConfiguratorFlow() {
 
                   {/* Right Info & Checkbox */}
                   <div className="flex-1 min-w-0 pr-8">
-                    <h3 className="text-sm sm:text-base font-extrabold text-gray-950 leading-tight">
-                      {z.label}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-2 line-clamp-3 leading-relaxed font-normal">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-sm sm:text-base font-extrabold text-gray-950 leading-tight">
+                        {z.label}
+                      </h3>
+                      {isSelected && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-[#D92C32]">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed font-normal">
                       {z.tagline || z.desc || "High-capacity retail shelving engineered for durability and modular merchandise arrangement."}
                     </p>
+                    <div className="mt-2.5 flex items-center gap-2 text-[11px] text-gray-500 font-medium">
+                      <span>{z.defaultLenFt}' Run · {z.fixtures} Fixtures</span>
+                      <span className="text-gray-300">•</span>
+                      <span className="font-bold text-gray-800">{money(z.basePrice)}</span>
+                    </div>
                   </div>
 
                   {/* Checkbox Icon Top Right */}
@@ -637,13 +751,13 @@ export default function ConfiguratorFlow() {
           </div>
 
           {/* Pagination indicator dots */}
-          <div className="flex items-center justify-center gap-1.5 mb-8">
+          <div className="flex items-center justify-center gap-1.5 mb-6 shrink-0">
             <span className="w-2.5 h-2.5 rounded-full bg-gray-300" />
             <span className="w-2.5 h-2.5 rounded-full bg-gray-900" />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 pb-6 shrink-0">
             <button
               type="button"
               onClick={() => setStep(1)}
@@ -656,7 +770,7 @@ export default function ConfiguratorFlow() {
               onClick={() => setStep(2)}
               className="px-10 py-2.5 rounded-full bg-[#D92C32] hover:bg-[#b5252a] text-white text-xs font-extrabold shadow-md flex items-center gap-2 transition-all cursor-pointer"
             >
-              <span>Start</span>
+              <span>Start ({selectedZoneIds.length} Zones)</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -667,26 +781,46 @@ export default function ConfiguratorFlow() {
           STEP 2: 3D CONFIGURATOR WORKSPACE (Matches Images 4 & 5)
          ════════════════════════════════════════════════════════════ */}
       {step === 2 && (
-        <main className="flex-1 flex flex-col p-2.5 sm:p-4 lg:p-6 max-w-[1500px] w-full mx-auto overflow-y-auto lg:overflow-hidden animate-in fade-in duration-300">
-          
+        <main className="relative flex-1 flex flex-col p-2.5 sm:p-4 lg:p-6 max-w-[1500px] w-full mx-auto overflow-y-auto lg:overflow-hidden animate-in fade-in duration-300">
           {/* ── SUB-HEADER: ZONE TABS BAR & ACTIONS (Matches Images 4 & 5) ── */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-3 sm:mb-4 bg-white border border-gray-200 rounded-2xl p-2 sm:px-4 sm:py-2.5 shadow-2xs shrink-0">
-            {/* Horizontal Zone Tabs */}
+            {/* Horizontal Zone Tabs with Progress Indicators */}
             <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 scrollbar-none scroll-smooth shrink-0 w-full sm:w-auto">
               {selectedZoneIds.map((zId, idx) => {
                 const zDef = ZONES.find((z) => z.id === zId);
                 const isActive = activeZoneIdx === idx;
+                const isCompleted = completedZoneIds.includes(zId);
                 return (
                   <button
                     key={zId}
                     type="button"
-                    onClick={() => setActiveZoneIdx(idx)}
-                    className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                    onClick={() => {
+                      setSelectedUnit(null);
+                      setActiveZoneIdx(idx);
+                    }}
+                    className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-extrabold transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
                       isActive
-                        ? "border-2 border-[#D92C32] text-[#D92C32] bg-red-50/20 shadow-2xs"
-                        : "text-gray-700 hover:text-gray-950 hover:bg-gray-50"
+                        ? "border-2 border-[#D92C32] text-[#D92C32] bg-red-50/25 shadow-2xs"
+                        : isCompleted
+                        ? "border border-emerald-300 bg-emerald-50/50 text-emerald-800 hover:bg-emerald-50"
+                        : "text-gray-700 hover:text-gray-950 hover:bg-gray-50 border border-gray-100"
                     }`}
                   >
+                    <span
+                      className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        isActive
+                          ? "bg-[#D92C32] text-white"
+                          : isCompleted
+                          ? "bg-emerald-600 text-white"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {isCompleted && !isActive ? (
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      ) : (
+                        idx + 1
+                      )}
+                    </span>
                     <span>{zDef?.label || `Zone (${zId})`}</span>
                   </button>
                 );
@@ -760,6 +894,31 @@ export default function ConfiguratorFlow() {
             {/* Right Configurator Sidebar Panel (Matches Images 4 & 5) */}
             <div className="w-full lg:w-[380px] xl:w-[420px] flex flex-col gap-4 shrink-0 overflow-y-auto pr-0.5">
               
+              {/* Zone Step & Progress Badge */}
+              <div className="bg-white rounded-2xl border border-gray-200/90 px-4 py-3 shadow-2xs flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-6 h-6 rounded-lg bg-red-50 text-[#D92C32] font-extrabold text-xs flex items-center justify-center">
+                    {activeZoneIdx + 1}
+                  </span>
+                  <div>
+                    <span className="text-xs font-extrabold text-gray-950 block">
+                      Zone {activeZoneIdx + 1} of {selectedZoneIds.length}
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-semibold">
+                      {isLastZone ? "Final zone to configure" : `Next up: ${nextZoneDef?.label || "Next Zone"}`}
+                    </span>
+                  </div>
+                </div>
+                <div className="w-24 bg-gray-100 h-2 rounded-full overflow-hidden">
+                  <div
+                    className="bg-[#D92C32] h-full transition-all duration-300 rounded-full"
+                    style={{
+                      width: `${Math.round(((activeZoneIdx + 1) / selectedZoneIds.length) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
               {/* TOP CARD: Zone Details & Wall Length */}
               <div className="bg-white rounded-3xl border border-gray-200 p-5 shadow-2xs">
                 <h3 className="text-lg sm:text-xl font-extrabold text-gray-950 leading-tight">
@@ -943,6 +1102,60 @@ export default function ConfiguratorFlow() {
                     );
                   })}
                 </div>
+              </div>
+
+              {/* ── ZONE COMPLETION & NAVIGATION CONTROLS (NEXT ZONE) ── */}
+              <div className="bg-white rounded-3xl border border-gray-200 p-4 sm:p-5 shadow-xs shrink-0 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#D92C32] animate-pulse" />
+                    <span className="font-extrabold text-gray-900">
+                      Step {activeZoneIdx + 1} of {selectedZoneIds.length}: {currentActiveZone.label}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-extrabold text-[#D92C32] uppercase tracking-wider bg-red-50 px-2 py-0.5 rounded">
+                    {isLastZone ? "Ready to Finish" : `Next: ${nextZoneDef?.label || "Next Zone"}`}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {activeZoneIdx > 0 && (
+                    <button
+                      type="button"
+                      onClick={handlePrevZone}
+                      className="px-3.5 py-3 rounded-2xl border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs shrink-0"
+                      title={prevZoneDef ? `Back to ${prevZoneDef.label}` : "Previous Zone"}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span className="hidden sm:inline">Prev</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleNextZone}
+                    className="flex-1 py-3.5 px-4 rounded-2xl bg-[#D92C32] hover:bg-[#b5252a] active:scale-98 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-red-600/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  >
+                    {!isLastZone ? (
+                      <>
+                        <span>Next Zone: {nextZoneDef?.label || "Next Zone"}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                        <span>Finish & Review Store Layout</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-gray-500 text-center font-medium">
+                  {!isLastZone
+                    ? `Saves ${currentActiveZone.label} and advances directly to ${nextZoneDef?.label}.`
+                    : "All store zones configured! Proceed to layout summary & bill of materials."}
+                </p>
               </div>
             </div>
           </div>

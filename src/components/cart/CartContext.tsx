@@ -21,9 +21,9 @@ interface CartCtx {
   items: CartItem[];
   count: number;
   subtotal: number;
-  isOpen: boolean;
-  openCart: () => void;
-  closeCart: () => void;
+  /** Increments on each add that should show the "added to cart" notice; 0 = hidden. */
+  addedNotice: number;
+  dismissNotice: () => void;
   addItem: (p: { id: string; title: string; price: number; image: string }) => void;
   addBundle: (items: CartItem[], opts?: { open?: boolean }) => void;
   updateQuantity: (id: string, delta: number) => void;
@@ -53,7 +53,7 @@ const STORAGE_KEY = "tshop_cart_v1";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(SEED);
-  const [isOpen, setIsOpen] = useState(false);
+  const [addedNotice, setAddedNotice] = useState(0);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -84,12 +84,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         );
       return [...prev, { ...p, quantity: 1 }];
     });
-    setIsOpen(true);
+    setAddedNotice((n) => n + 1);
   }, []);
 
   const addBundle = useCallback<CartCtx["addBundle"]>((bundle, opts) => {
     setItems((prev) => [...prev, ...bundle]);
-    if (opts?.open !== false) setIsOpen(true);
+    if (opts?.open !== false) setAddedNotice((n) => n + 1);
   }, []);
 
   const updateQuantity = useCallback<CartCtx["updateQuantity"]>((id, delta) => {
@@ -113,15 +113,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       items,
       count,
       subtotal,
-      isOpen,
-      openCart: () => setIsOpen(true),
-      closeCart: () => setIsOpen(false),
+      addedNotice,
+      dismissNotice: () => setAddedNotice(0),
       addItem,
       addBundle,
       updateQuantity,
       removeItem,
     };
-  }, [items, isOpen, addItem, addBundle, updateQuantity, removeItem]);
+  }, [items, addedNotice, addItem, addBundle, updateQuantity, removeItem]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

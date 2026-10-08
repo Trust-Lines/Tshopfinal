@@ -13,7 +13,7 @@ import {
 import { useCart } from "./cart/CartContext";
 
 export default function Header() {
-  const { count: cartCount, openCart: onOpenCart } = useCart();
+  const { count: cartCount } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -153,8 +153,8 @@ export default function Header() {
             </div>
 
             {/* Shopping Cart Circular White Button */}
-            <button
-              onClick={onOpenCart}
+            <Link
+              href="/cart"
               className="w-9 h-9 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 text-gray-700 hover:text-black rounded-full flex items-center justify-center transition-colors relative cursor-pointer shadow-xs"
               aria-label="Shopping Cart"
             >
@@ -164,7 +164,7 @@ export default function Header() {
                   {cartCount}
                 </span>
               )}
-            </button>
+            </Link>
 
             {/* Mobile Menu Toggle */}
             <button

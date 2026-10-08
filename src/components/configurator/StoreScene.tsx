@@ -52,24 +52,33 @@ const getZoneModelInfo = (r: SceneRow) => {
     };
   }
   if (r.zone.id === "front-checkout") {
-    return { file: "/models/cashier/sc-sliding-34.glb", rotateY: false, stepM: 0.91 };
+    return { file: "/models/Contemprory/Cashier Area/Display Showcases/SHOWCASE-SLIDING-Variations/SC-Sliding-34.glb", rotateY: false, stepM: 0.91 };
   }
   if (r.zone.id === "back-counter") {
-    return { file: "/models/cashier/bc-36.glb", rotateY: false, stepM: 0.97 };
+    return { file: "/models/Contemprory/Cashier Area/Back Counter/BACK-CASHIER-CABINET-Variations/BC-36.glb", rotateY: false, stepM: 0.97 };
   }
   if (r.zone.id === "deli") {
-    return { file: "/models/zone-2.glb", rotateY: false, stepM: 1.0 };
+    return { file: "/models/Contemprory/Shelving/Endcap/ENDCAP BAKERY SHOWCASES.glb", rotateY: false, stepM: 1.0 };
   }
   if (r.zone.id === "coffee") {
-    return { file: "/models/coffee/fa-40.glb", rotateY: false, stepM: 1.02 };
+    return { file: "/models/Contemprory/Food & Coffee Area/FA-40-Variations/FA-40.glb", rotateY: false, stepM: 1.02 };
   }
   if (r.zone.id === "countertop") {
-    return { file: "/models/cashier/countertop-showcase-34.glb", rotateY: false, stepM: 0.86 };
+    return { file: "/models/Contemprory/Cashier Area/Countertop/Countertop-Shelves-Variations/Countertop-Shelves-34.glb", rotateY: false, stepM: 0.86 };
   }
   if (r.zone.id === "jewellery") {
-    return { file: "/models/cashier/sc-hinged-34.glb", rotateY: false, stepM: 0.90 };
+    return { file: "/models/Contemprory/Cashier Area/Display Showcases/SHOWCASE-HINGED-Variations/SC-Hinged-34.glb", rotateY: false, stepM: 0.90 };
   }
-  return { file: "/models/zone-1.glb", rotateY: false, stepM: 1.0 };
+  if (r.zone.id === "endcap") {
+    return { file: "/models/Contemprory/Shelving/Endcap/Endcap-35-Variations/Endcap-35.glb", rotateY: false, stepM: 0.89 };
+  }
+  if (r.zone.id === "wall-shelve") {
+    return { file: "/models/Contemprory/Shelving/Wall/WALL-SHELVE-Variations/WALL-SHELVE-77-39.glb", rotateY: false, stepM: 1.0 };
+  }
+  if (r.zone.id === "bakery-showcase") {
+    return { file: "/models/Contemprory/Shelving/Endcap/ENDCAP BAKERY SHOWCASES.glb", rotateY: false, stepM: 0.95 };
+  }
+  return { file: "/models/Contemprory/Shelving/Gondola/Gondola-35-Variations/GONDOLA-53-48.glb", rotateY: false, stepM: 1.0 };
 };
 
 function StoreContent({
